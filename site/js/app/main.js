@@ -44,6 +44,14 @@
     printOpts.start = n >= 1 ? n : 1;
   }
   document.addEventListener('change', (e) => { if (e.target.id && e.target.id.startsWith('po-')) readPrintOpts(); });
+  document.addEventListener('change', (e) => {
+    const id = e.target.id || '';
+    if (!id.startsWith('tpl-')) return;
+    if (id === 'tpl-cases') tpl.cases = e.target.value;
+    else if (id === 'tpl-kind') tpl.kind = e.target.value;
+    else if (id.startsWith('tpl-pattern-')) { tpl.pattern = e.target.value; tpl.kind = tpl.pattern === 'gen' ? 'general' : 'wage'; renderForm(); }
+    else if (id.startsWith('tpl-lien-')) tpl.lien = e.target.value === '1';
+  });
   // 印刷の直前に、いま表示している表をページに組む（Ctrl+P で印刷したときも同じ）
   window.addEventListener('beforeprint', () => {
     const t = document.getElementById('print-pages');
@@ -73,12 +81,72 @@
       opts.map(([v, t]) => `<option value="${esc(v)}" ${String(val(p)) === String(v) ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
 
   // ---------------------------------------------------------------
+  // テンプレート（典型的な形の入力欄を用意する）
+  // ---------------------------------------------------------------
+  const TPL_PATTERNS = [
+    ['gen', '一般債権どうし'],
+    ['sup', '一般債権＋養育費'],
+    ['supTax', '一般債権＋養育費＋公債権（租税・公課）'],
+  ];
+  const tpl = { cases: '1', pattern: 'gen', lien: true, kind: 'general' };
+  let tplOpen = null; // null：入力が空のときだけ出す。true／false：ボタンで開閉
+  let guide = null;   // テンプレートを当てた後の「次にすること」
+  const isBlank = () => !state.meta.date && !(state.history || []).length
+    && state.fund.deposits.every((d) => !d.amount && !d.date)
+    && state.claims.every((c) => !c.creditor && !c.principal);
+  function renderTemplate() {
+    const show = tplOpen === true || (tplOpen === null && isBlank());
+    if (guide && !show) {
+      return `<section class="card tpl guide"><div class="row between"><h2>次に入れるもの</h2><button class="btn small" data-act="closeGuide">閉じる</button></div>
+  <ol>${guide.map((g) => `<li>${g}</li>`).join('')}</ol></section>`;
+    }
+    if (!show) return '';
+    const sup = tpl.pattern !== 'gen';
+    return `<section class="card tpl">
+  <div class="row between"><h2>テンプレートから始める</h2>${tplOpen ? '<button class="btn small" data-act="closeTpl">閉じる</button>' : ''}</div>
+  <p class="hint">配当事件の数と債権者の構成を選ぶと、典型的な形の入力欄を用意します。あとは金額・日付・名前を入れていくだけです。入力欄はあとから追加・削除できます。</p>
+  <div class="grid">
+    <label class="field"><span class="label">配当事件（リ事件）の数＝供託金の数</span><input class="in num" id="tpl-cases" inputmode="numeric" value="${esc(tpl.cases)}"></label>
+    <label class="field"><span class="label">差押債権の種類</span><select class="in" id="tpl-kind">${[['general', '預金・売掛金など'], ['wage', '給料等（民執法152条）']].map(([v, t]) => `<option value="${v}" ${tpl.kind === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+  </div>
+  <div class="tpl-patterns">${TPL_PATTERNS.map(([v, t]) => `<label class="chk"><input type="radio" name="tpl-pattern" id="tpl-pattern-${v}" value="${v}" ${tpl.pattern === v ? 'checked' : ''}> ${t}</label>`).join('')}</div>
+  ${sup ? `<div class="tpl-patterns"><label class="chk"><input type="radio" name="tpl-lien" id="tpl-lien-yes" value="1" ${tpl.lien ? 'checked' : ''}> 養育費に子の監護費用の先取特権あり（担保権の実行又は文書による配当要求）</label>
+    <label class="chk"><input type="radio" name="tpl-lien" id="tpl-lien-no" value="0" ${tpl.lien ? '' : 'checked'}> 先取特権なし（債務名義による差押え・配当要求だけ）</label></div>` : ''}
+  <div class="row"><button class="btn primary" data-act="applyTpl">この形で始める</button></div>
+</section>`;
+  }
+  function applyTemplate() {
+    const n = Math.min(Math.max(HT.int(tpl.cases) || 1, 1), 20);
+    if (!isBlank() && !confirm('いまの入力を消して、テンプレートの形に入れ替えます。よろしいですか。')) return false;
+    const sup = tpl.pattern !== 'gen', tax = tpl.pattern === 'supTax';
+    state = blankState();
+    state.fund.kind = tpl.kind;
+    state.fund.deposits = Array.from({ length: n }, () => blankDeposit());
+    const gen = (label) => Object.assign(blankClaim(), { kind: 'GEN', label });
+    state.claims = tpl.pattern === 'gen' ? [gen('貸金'), gen('売買代金')] : [gen('貸金')];
+    if (tax) state.claims.push(Object.assign(blankClaim(), { kind: 'TAX', label: '（税目）・交付要求' }));
+    if (sup) state._sup = { asserted: tpl.lien };
+    const steps = [
+      '「1 事件」：配当期日、裁判所・書記官、債務者、事件番号を入れます。',
+      `「2 配当原資」：供託金${n > 1 ? `1〜${n}` : ''}ごとに、供託日（日時）・供託金・配当事件の番号（リ）を入れます。${tpl.kind === 'wage' ? '給料等は手取額も入れます。' : ''}`,
+      '「4 債権者」：債権者ごとに、名前・事件番号・差押え等の効力発生の日時・請求債権の額を入れます。',
+    ];
+    if (sup) steps.push(`「5 扶養義務等債権」：養育費の債権者・月額・子の数・未払の支払期を入れて「債権者欄に加える」を押します。${tpl.lien ? '先取特権の部分（月8万円×子の数まで）とそれ以外の2行に分けて加えます。' : '先取特権の部分は作らず、1行で加えます。'}加えた行に事件番号・効力発生の日時を入れます。`);
+    if (tax) steps.push('公債権の行：種別（租税／公課）、税目、法定納期限等、交付要求の受理の日時を入れます。');
+    steps.push('右の配当表を確かめ、「印刷」又は「Excel で保存」で出力します。続きは「JSON に保存」で残せます。');
+    guide = steps;
+    tplOpen = false;
+    return true;
+  }
+
+  // ---------------------------------------------------------------
   // 画面
   // ---------------------------------------------------------------
   function renderForm() {
     const s = state;
     const wage = s.fund.kind === 'wage';
     $('#form').innerHTML = `
+${renderTemplate()}
 <section class="card">
   <h2>1 事件</h2>
   <div class="grid">
@@ -537,7 +605,11 @@ ${regions}`;
       case 'saveAnon': download(`配当計算_報告用_${stamp()}.json`, new Blob([JSON.stringify(anonymize(toInput()), null, 2)], { type: 'application/json' })); return;
       case 'save': download(`配当計算_${stamp()}.json`, new Blob([JSON.stringify(toInput(), null, 2)], { type: 'application/json' })); return;
       case 'load': $('#loadfile').click(); return;
-      case 'clear': if (!confirm('入力をすべて消します。よろしいですか。')) return; state = blankState(); break;
+      case 'clear': if (!confirm('入力をすべて消します。よろしいですか。')) return; state = blankState(); tplOpen = null; guide = null; break;
+      case 'openTpl': tplOpen = true; guide = null; renderForm(); window.scrollTo({ top: 0, behavior: 'smooth' }); return;
+      case 'closeTpl': tplOpen = false; renderForm(); return;
+      case 'closeGuide': guide = null; renderForm(); return;
+      case 'applyTpl': if (!applyTemplate()) return; break;
       default: return;
     }
     renderForm();
