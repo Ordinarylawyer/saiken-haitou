@@ -1,4 +1,4 @@
-# saiken-haitou
+# <img src="site/favicon.svg" width="40" height="40" alt="" align="top"> saiken-haitou
 
 債権執行の配当額を計算し、実務の書式で配当表（弁済金交付計算書）を作る Web アプリです。**ブラウザの中だけで動き、入力した情報をどこにも送りません。**
 
