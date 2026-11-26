@@ -1,0 +1,113 @@
+/* 債権執行 配当計算 ― 見た目（sohikaku と同じ配色） */
+:root {
+  --primary: #004878; --primary-light: #e8f0f6; --border: #d6dbdf; --bg: #fafafa; --card: #fff;
+  --text: #201f1e; --sub: #605e5c; --danger: #a80000; --warn: #9d5d00; --warn-bg: #fff4ce;
+  --radius: 6px;
+  font-family: "BIZ UDPGothic", "Yu Gothic UI", "Meiryo", "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+.top { background: var(--primary); color: #fff; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; gap: 12px; flex-wrap: wrap; }
+.brand { font-size: 20px; font-weight: 700; }
+.top .right { display: flex; gap: 8px; flex-wrap: wrap; }
+.privacy { margin: 0; padding: 6px 20px; font-size: 12px; color: var(--sub); background: #f3f6f8; border-bottom: 1px solid var(--border); }
+.layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; padding: 16px 20px; max-width: 1800px; margin: 0 auto; align-items: start; }
+.result-col { position: sticky; top: 12px; }
+@media (max-width: 1200px) { .layout { grid-template-columns: 1fr; } .result-col { position: static; } }
+.license { max-width: 1800px; margin: 0 auto 16px; padding: 0 20px; font-size: 12px; color: var(--sub); }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px; }
+.card h2 { font-size: 16px; margin: 0 0 8px; color: var(--primary); }
+.sub-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; margin: 8px 0; background: #fcfdfe; }
+.sub-card.claim { border-left: 4px solid var(--primary); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 4px 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: end; margin: 4px 0; }
+.row.between { justify-content: space-between; align-items: center; }
+.field { display: flex; flex-direction: column; gap: 2px; margin: 4px 0; }
+.field.wide2 { grid-column: span 2; min-width: 18em; }
+.hint.span-all { grid-column: 1 / -1; margin: 2px 0; }
+.calc-line { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px 10px; border-top: 1px dashed var(--border); padding-top: 4px; }
+.calc-line .field { min-width: 8em; }
+.calc-line .field.narrow { min-width: 5em; max-width: 6em; }
+.calc-out { font-size: 13px; color: var(--primary); min-width: 9em; padding-bottom: 8px; }
+details.history { overflow-x: auto; }
+details.history table { margin: 4px 0; }
+details.history td:first-child, details.history td:nth-child(2), details.history .btn { white-space: nowrap; }
+.label { font-size: 12px; color: var(--sub); }
+.hint { font-size: 12.5px; color: var(--sub); margin: 6px 0; }
+.hint.warn { color: var(--warn); background: var(--warn-bg); padding: 6px 10px; border-radius: 4px; }
+.hint.warn ul { margin: 4px 0 0; padding-left: 1.4em; }
+.err { color: var(--danger); }
+.sub { color: var(--sub); font-size: 13px; }
+.in { font: inherit; padding: 4px 7px; border: 1px solid #b9c0c6; border-radius: 4px; background: #fff; min-width: 0; width: 100%; }
+.in.num { text-align: right; }
+.in.wide { width: 100%; }
+.in:focus, .btn:focus-visible { outline: 2px solid #0f6cbd; outline-offset: 1px; }
+.chk { display: inline-flex; gap: 4px; align-items: center; font-size: 13px; margin: 6px 12px 6px 0; }
+.btn { font: inherit; padding: 5px 12px; border: 1px solid var(--primary); color: var(--primary); background: #fff; border-radius: 4px; cursor: pointer; }
+.btn:hover:not(:disabled) { background: var(--primary-light); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.primary { background: var(--primary); color: #fff; }
+.btn.light { background: transparent; color: #fff; border-color: #fff; }
+.btn.light:hover { background: rgba(255,255,255,.15); }
+a.btn { text-decoration: none; display: inline-block; line-height: normal; }
+.btn.small { padding: 2px 10px; font-size: 13px; }
+.btn.danger { border-color: var(--danger); color: var(--danger); }
+details summary { cursor: pointer; color: var(--primary); font-size: 13px; margin: 6px 0; }
+table.mini { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+table.mini th, table.mini td { border: 1px solid var(--border); padding: 3px 6px; vertical-align: top; }
+table.mini td.n { text-align: right; }
+
+/* 配当表（実務の書式。近藤基「債権配当の実務と書式〔第3版〕」181頁以下（民事法研究会・2021年）の配当表例） */
+.print-area { overflow-x: auto; background: #fff; padding: 8px 0; }
+.ht-sheet { border-collapse: collapse; width: 100%; min-width: 860px; font-family: "BIZ UDPMincho", "Yu Mincho", "MS PMincho", "Hiragino Mincho ProN", serif; font-size: 12px; table-layout: fixed; }
+.ht-sheet td, .ht-sheet th { border: 1px solid #000; padding: 3px 5px; vertical-align: middle; font-weight: normal; }
+.ht-sheet .c-rank { width: 4.5%; } .ht-sheet .c-payee { width: 22%; } .ht-sheet .c-amt { width: 11%; } .ht-sheet .c-note { width: 18.5%; }
+.ht-left { vertical-align: top !important; line-height: 1.9; padding: 6px 10px !important; }
+.ht-left .ht-signer { margin-top: 1.4em; padding-left: 2em; }
+.ht-title { font-size: 18px; text-align: center; letter-spacing: .3em; }
+.ht-cases { text-align: right; vertical-align: top !important; line-height: 1.7; }
+.ht-flabel { text-align: center; }
+.ht-fval { text-align: right; }
+.ht-debtor { text-align: center; letter-spacing: .2em; }
+.ht-c { text-align: center; }
+.ht-n { text-align: right; white-space: nowrap; }
+.ht-bottom { vertical-align: bottom !important; }
+.ht-stack div { line-height: 1.55; }
+th.ht-stack { text-align: left; white-space: nowrap; }
+.ht-uline { border-bottom: 1px solid #000; margin-bottom: 2px; }
+.ht-who div { min-height: 1.3em; }
+.ht-note { font-size: 11px; vertical-align: top !important; }
+.ht-total td { height: 2em; }
+.ht-status { margin-top: 18px; page-break-before: always; break-before: page; }
+.ht-status-title { font-family: "BIZ UDPMincho", "Yu Mincho", serif; font-weight: normal; font-size: 16px; text-align: center; letter-spacing: .2em; }
+.ht-st th { text-align: center; }
+.ht-small { font-size: 11px; }
+.ht-dep { text-align: left; white-space: nowrap; }
+.ht-r { text-align: right; }
+.ht-prov { margin: 0 0 4px; font-size: 13px; color: #a80000; }
+
+/* 印刷の選択 */
+.print-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; }
+.print-opts .po-start { width: 4em; padding: 2px 4px; }
+.print-opts .po-btns { margin-left: auto; }
+
+/* 印刷用のページ（print.js が組む）。@page の余白を0にしてブラウザのヘッダ・フッタ（URL・日時等）を出さず、
+   余白・ページ番号はページの中に置く。.pp の体裁で行の高さを測るので、印刷と同じ指定を画面側にも置く */
+#print-pages { display: none; }
+.pp .ht-sheet { min-width: 0; font-size: 9.5pt; }
+.pp .ht-sheet td, .pp .ht-sheet th { padding: 2px 4px; }
+.pp .ht-stack div { line-height: 1.3; }
+.pp .ht-status { margin-top: 0; }
+.pp-measure { position: absolute; left: -10000px; top: 0; width: 273mm; visibility: hidden; background: #fff; }
+.pp-mm { height: 100mm; }
+.pp-page { position: relative; width: 297mm; height: 209mm; padding: 12mm; box-sizing: border-box; overflow: hidden; break-after: page; page-break-after: always; }
+.pp-page:last-child { break-after: auto; page-break-after: auto; }
+.pp-page .ht-sheet + .ht-sheet, .pp-page .ht-sheet + p { margin-top: 0; }
+.pp-no { position: absolute; left: 0; right: 0; bottom: 7mm; text-align: center; font-family: "BIZ UDPMincho", "Yu Mincho", "MS PMincho", "Hiragino Mincho ProN", serif; font-size: 10pt; }
+
+@media print {
+  @page { size: A4 landscape; margin: 0; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body > :not(#print-pages):not(.pp-measure) { display: none !important; }
+  #print-pages { display: block; }
+}

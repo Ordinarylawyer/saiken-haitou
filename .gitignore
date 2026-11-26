@@ -1,0 +1,6 @@
+# 公開しない参考資料と、手元だけで使う検査用の一覧は入れない
+reference/
+tests/local/
+*.pdf
+node_modules/
+.DS_Store
