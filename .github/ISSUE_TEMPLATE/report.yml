@@ -1,0 +1,33 @@
+name: 計算の誤りの報告
+description: 配当額・配当表の記載・警告などの誤りを報告する
+title: "[報告] "
+labels: ["報告"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        アプリの「この計算の誤りを報告」から開くと、対象（書式・供託金と債権者の種類など）が入った状態になります。
+        事件の当事者名・事件番号など、個別の事件を特定できる情報は書かないでください。入力を添えるときは、アプリの「名前等を消した JSON を保存」で保存したファイルを、中身を確かめてから添付してください。
+  - type: textarea
+    id: target
+    attributes:
+      label: 対象
+      description: 書式、差押債権の種類、供託金と債権者の種類（アプリから開くと自動で入ります）
+    validations:
+      required: true
+  - type: textarea
+    id: detail
+    attributes:
+      label: 誤りの内容と、正しいと考える結果
+      description: どの欄の額・記載がどう違うか。正しいと考える配当額や計算の筋道があれば書いてください
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: 根拠
+      description: 条文・判例・文献（頁）などと、確認した日
+  - type: input
+    id: note
+    attributes:
+      label: 補足（任意）

@@ -318,6 +318,51 @@
     delete s._sup;
     return s;
   }
+
+  // ---------------------------------------------------------------
+  // 誤りの報告・改善の提案（GitHub の Issue。事件を特定できる情報は送らない）
+  // ---------------------------------------------------------------
+  const REPO = 'https://github.com/Ordinarylawyer/saiken-haitou';
+  const issueUrl = (template, title, fields) => `${REPO}/issues/new?${new URLSearchParams(Object.assign({ template, title }, fields))}`;
+  // 報告の「対象」欄に入れる要約。名前・事件番号・金額は入れず、計算の形だけを書く
+  function reportTarget(r) {
+    const s = state;
+    const depLabel = Object.fromEntries(DEP_TYPES);
+    const lines = [
+      `書式：${r.type}${viewingAdd ? '（追加配当表）' : viewing != null ? `（第${viewing + 1}回の表示）` : ''}`,
+      `差押債権：${s.fund.kind === 'wage' ? '給料等' : '預金・売掛金など'}`,
+      `供託金：${s.fund.deposits.length}件（${s.fund.deposits.map((d) => depLabel[depType(d)] || '').join('／')}）`,
+      `債権者：${s.claims.length}件（${s.claims.map((c, i) => `${i + 1} ${HT.KIND_LABEL[c.kind] || c.kind}${c.fromPrv ? '・本執行移行' : ''}${c.stayed ? '・執行停止' : ''}${c.transferServedAt ? '・転付命令' : ''}`).join('、')}）`,
+    ];
+    const diff = Object.keys(HT.DEFAULT_SETTINGS).filter((k) => (s.settings || {})[k] && s.settings[k] !== HT.DEFAULT_SETTINGS[k]);
+    if (diff.length) lines.push(`設定（初期値から変更）：${diff.map((k) => `${k}=${s.settings[k]}`).join('、')}`);
+    return lines.join('\n');
+  }
+  // 報告に添える入力（JSON）から、名前・事件番号・供託番号などを消す
+  function anonymize(input) {
+    const names = new Map();
+    const alias = (name, prefix) => {
+      const k = `${prefix}:${String(name || '').trim()}`;
+      if (!String(name || '').trim()) return '';
+      if (!names.has(k)) names.set(k, `${prefix}${[...names.keys()].filter((x) => x.startsWith(prefix + ':')).length + 1}`);
+      return names.get(k);
+    };
+    const one = (x) => {
+      if (!x) return x;
+      if (x.meta) Object.assign(x.meta, { court: '○○地方裁判所', clerk: '', judge: '', debtor: '債務者', caseNos: '', footnote: '' });
+      (x.claims || []).forEach((c) => {
+        c.creditor = alias(c.creditor, '債権者');
+        c.caseNo = ''; c.regNote = ''; c.note = '';
+        if (c.group) c.group = alias(c.group, '組');
+      });
+      (x.fund && x.fund.deposits || []).forEach((d) => { d.thirdParty = alias(d.thirdParty, '第三債務者'); d.caseNo = ''; d.depositNo = ''; d.office = ''; });
+      (x.procedureCosts || []).forEach((c) => { c.payee = alias(c.payee, '債権者'); });
+      return x;
+    };
+    const s = one(JSON.parse(JSON.stringify(input)));
+    (s.history || []).forEach((h) => { if (h.input) one(h.input); });
+    return s;
+  }
   function compute() {
     viewing = null; viewingAdd = false;
     try {
@@ -372,6 +417,12 @@ ${printPanel ? `<div class="sub-card print-opts noprint">
   <span class="po-btns"><button class="btn primary" data-act="doPrint">印刷する</button> <button class="btn" data-act="cancelPrint">やめる</button></span>
 </div>` : ''}
 <div id="print-area" class="print-area">${HT.renderTableHTML(r)}</div>
+<div class="report-row noprint">
+  <a class="btn small" target="_blank" rel="noopener noreferrer" href="${esc(issueUrl('report.yml', `[報告] ${r.type}の計算`, { target: reportTarget(r) }))}">この計算の誤りを報告</a>
+  <button class="btn small" data-act="saveAnon" title="債権者名・事件番号・第三債務者名・供託番号などを消した入力を保存します。報告に添えるときに使います">名前等を消した JSON を保存</button>
+  <a class="btn small" target="_blank" rel="noopener noreferrer" href="${esc(issueUrl('proposal.yml', '[提案] '))}">改善を提案</a>
+  <span class="hint">GitHub のアカウントが要ります。事件の当事者名など、事件を特定できる情報は書かないでください。</span>
+</div>
 ${addPanel}
 ${regions}`;
   }
@@ -483,6 +534,7 @@ ${regions}`;
         download(`${lastResult.type}_${stamp()}.xlsx`, blob);
         return;
       }
+      case 'saveAnon': download(`配当計算_報告用_${stamp()}.json`, new Blob([JSON.stringify(anonymize(toInput()), null, 2)], { type: 'application/json' })); return;
       case 'save': download(`配当計算_${stamp()}.json`, new Blob([JSON.stringify(toInput(), null, 2)], { type: 'application/json' })); return;
       case 'load': $('#loadfile').click(); return;
       case 'clear': if (!confirm('入力をすべて消します。よろしいですか。')) return; state = blankState(); break;
