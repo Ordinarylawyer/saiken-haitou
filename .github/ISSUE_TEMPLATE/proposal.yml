@@ -1,7 +1,7 @@
 name: 改善の提案
 description: 対応する場面の追加、画面・配当表・Excel・印刷の改善などを提案する
 title: "[提案] "
-labels: ["提案"]
+labels: ["機能追加"]
 body:
   - type: markdown
     attributes:
