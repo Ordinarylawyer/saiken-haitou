@@ -103,7 +103,7 @@ th.ht-stack { text-align: left; white-space: nowrap; }
 .case-count .case-n { width: 4em; padding: 2px 6px; }
 .case-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 14px; }
 .case-row .case-k { display: inline-block; min-width: 1.6em; color: var(--sub); font-size: 12px; }
-.case-row .case-y { width: 4em; } .case-row .case-no { width: 7em; } .case-row .case-raw { width: 18em; }
+.case-row .case-era { width: 5.2em; padding: 3px 2px; } .case-row .case-y { width: 4em; } .case-row .case-no { width: 7em; } .case-row .case-raw { width: 18em; }
 .case-row .in { padding: 3px 6px; }
 
 /* テンプレート */
