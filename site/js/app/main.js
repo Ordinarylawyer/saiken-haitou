@@ -225,11 +225,11 @@
     if (tax) state.claims.push(Object.assign(blankClaim(), { kind: 'TAX', label: '（税目）・交付要求' }));
     if (sup) state._sup = { asserted: tpl.lien };
     const steps = [
-      '「1 事件」：配当期日、裁判所、作成者（配当表なら裁判所書記官、弁済金交付計算書なら裁判官。肩書は計算の結果で決まります）、債務者と、配当等事件（リ）の番号を年と号に分けて入れます（リ事件の数だけ欄を用意してあります）。',
+      '「1 事件」：配当期日、裁判所、作成者（配当表なら裁判所書記官、弁済金交付計算書なら裁判官。肩書は計算の結果で決まります）、債務者名と、配当等事件（リ）の番号を年と号に分けて入れます（リ事件の数だけ欄を用意してあります）。',
       `「2 配当原資」：供託金${n > 1 ? `1〜${n}` : ''}ごとに、供託日（日時）・供託金を入れ、配当等事件の番号（リ）を「1 事件」に入れた番号から選びます。${nG && nW ? `供託金1${nG > 1 ? `〜${nG}` : ''}は預金・売掛金など、供託金${nG + 1}${nW > 1 ? `〜${n}` : ''}は給料等として用意しました。` : ''}${nW ? '給料等は手取額も入れます。' : ''}`,
       '「4 債権者」：債権者ごとに、名前・事件番号・差押え等の効力発生の日時・請求債権の額を入れます。',
     ];
-    if (sup) steps.push(`「5 扶養義務等債権」：養育費の債権者・月額・子の数・未払の支払期を入れて「債権者欄に加える」を押します。${tpl.lien ? '先取特権の部分（月8万円×子の数まで）とそれ以外の2行に分けて加えます。' : '先取特権の部分は作らず、1行で加えます。'}加えた行に事件番号・効力発生の日時を入れます。`);
+    if (sup) steps.push(`「5 扶養義務等債権」：養育費の債権者名・月額・子の数・未払の支払期を入れて「債権者欄に加える」を押します。${tpl.lien ? '先取特権の部分（月8万円×子の数まで）とそれ以外の2行に分けて加えます。' : '先取特権の部分は作らず、1行で加えます。'}加えた行に事件番号・効力発生の日時を入れます。`);
     if (tax) steps.push('公債権の行：種別（租税／公課）、税目、法定納期限等、交付要求の受理の日時を入れます。');
     steps.push('右の配当表を確かめ、「印刷」又は「Excel で保存」で出力します。続きは「JSON に保存」で残せます。');
     guide = steps;
@@ -295,7 +295,7 @@ ${renderTemplate()}
       <label class="label" for="signer-in">作成者の氏名（配当の場合は書記官、弁済金交付の場合は裁判官）</label>
       <div class="signer-row"><input class="in" id="signer-in" type="text" data-bind="meta.signer" value="${esc(val('meta.signer'))}"><span class="signer-role" id="signer-role">${esc(signerRole())}</span></div>
     </div>
-    ${inp('meta.debtor', '債務者')}
+    ${inp('meta.debtor', '債務者名')}
     ${sel('meta.debtorLabel', '債務者欄の表示', [['債　務　者', '債務者'], ['債務者兼所有者', '債務者兼所有者（担保権の実行）']])}
   </div>
   <div class="field"><span class="label">配当等事件の番号（リ）</span>${renderCases()}</div>
@@ -404,7 +404,7 @@ ${renderTemplate()}
   <h2>5 扶養義務等債権を先取特権の部分とそれ以外に分ける</h2>
   <p class="hint">定期金の各期を入れると、子の監護費用の先取特権が付く部分（月8万円×子の数まで。施行日前の取決めは令和8年4月以後の期に限る）と、それ以外に分けて債権者欄に加えます。先取特権の部分として扱うのは、配当要求の終期までに担保権の実行か、先取特権を証する文書による配当要求をした場合だけです。</p>
   <div class="grid">
-    ${inp('_sup.creditor', '債権者')}
+    ${inp('_sup.creditor', '債権者名')}
     ${inp('_sup.monthly', '月額（円）', '', 'num')}
     ${inp('_sup.children', '子の数', '', 'num')}
     ${inp('_sup.from', '未払の最初の支払期', '', 'date')}
@@ -469,7 +469,7 @@ ${renderTemplate()}
       <span><button class="btn small" data-act="upClaim" data-i="${i}" ${i ? '' : 'disabled'}>↑</button>
       <button class="btn small danger" data-act="delClaim" data-i="${i}">削除</button></span></div>
     <div class="grid">
-      ${inp(p('creditor'), '債権者')}
+      ${inp(p('creditor'), '債権者名')}
       ${sel(p('kind'), '種別', HT.KINDS.map((x) => [x, HT.KIND_LABEL[x]]), true)}
       ${inp(p('caseNo'), '事件番号（差押え・配当要求等）', '', 'text', 'placeholder="令和○年（ル）第○号"')}
       ${inp(p('label'), '債権の種類（配当表の表示）', '', 'text', 'placeholder="貸金、給料・一般先取特権 など"')}
