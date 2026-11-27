@@ -589,8 +589,9 @@ ${renderTemplate()}
     const r = lastResult;
     const warn = r.warnings.length ? `<div class="hint warn"><strong>確認してください</strong><ul>${r.warnings.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>` : '';
     const regions = r.regions.length > 1 || state.fund.deposits.some((d) => HT.isWageDeposit(d, state.fund)) ? `
-<details class="regions"><summary>部分（区画）ごとの配分</summary>
-<table class="mini"><tr><th>供託金</th><th>範囲（円）</th><th>原資（円）</th><th>参加者と配当（円）</th><th>残り（円）</th></tr>
+<details class="regions"><summary>供託金の部分ごとの配分（配当に加わる債権者が同じ範囲ごと）</summary>
+<p class="hint">給料等では、手取額の1/4までの部分と、1/4を超え1/2までの部分（扶養義務等債権だけが差し押さえられる部分）で配当に加わる債権者が違うので、分けて配ります。供託ごとに加わる債権者が違うときも分けます。</p>
+<table class="mini"><tr><th>供託金</th><th>供託金のうちの範囲（円）</th><th>配る額（円）</th><th>配当に加わる債権者と配当額（円）</th><th>残り（円）</th></tr>
 ${r.regions.map((g) => `<tr><td>${g.deposit === 'sale' ? '売得金' : (g.deposits || []).map((x) => esc(`供託金${x.index + 1}${x.date ? '（' + HT.wareki(x.date) + '）' : ''}${x.part ? 'の' + x.part : ''}`)).join('<br>')}</td><td>${HT.yen(g.lower)}〜${HT.yen(g.upper)}</td><td class="n">${HT.yen(g.amount)}</td>
 <td>${g.members.map((id) => { const row = r.rows.find((x) => x.id === id); return `${esc(row ? row.payee + '（' + row.label + '）' : id)}：${HT.yen(g.got[id])}`; }).join('<br>')}</td><td class="n">${HT.yen(g.rest)}</td></tr>`).join('')}
 </table></details>` : '';

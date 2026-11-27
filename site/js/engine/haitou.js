@@ -504,7 +504,7 @@
         s._relative = true;
         s._absorbFrom = gens.filter((g) => !notBeaten.includes(g)).map((g) => g.id);
         if (active.some((c) => isPublic(c) || c.kind === 'GPP' || c.kind === 'SUP3')) {
-          warn(`${s.creditor || s.id}: 相対的優劣（吸収方式）と公租公課・先取特権が重なっています。結果を確かめてください。`);
+          warn(`${s.creditor || s.id}: 抵当権の物上代位の相対的な優劣（登記の前後で差し押さえた一般債権者への優劣が違う場合）と、公租公課・先取特権が重なっています。結果を確かめてください。`);
         }
       }
     }
@@ -656,7 +656,7 @@
         caps.H = d.capH != null && d.capH !== '' ? int(d.capH) : wc ? wc.H : amount;
         caps.T = d.capT != null && d.capT !== '' ? int(d.capT) : d.wage ? HT.taxSeizable(Object.assign({ payDate: d.payDate || d.date }, d.wage)) : null;
         if (caps.T == null && active.some((c) => capKind(c, true) === 'T')) {
-          warn('滞納処分の差押えがありますが、国税徴収法76条の差押可能額（区画T）が入力されていません。1/4の範囲として計算しました。');
+          warn('滞納処分の差押えがありますが、国税徴収法76条の差押可能額が入力されていません。1/4の範囲として計算しました。');
           caps.T = caps.Q;
         }
       }
@@ -713,7 +713,7 @@
 
     // 結果の行
     const saleTotal = int(fund.saleProceeds);
-    if (saleTotal && (fund.kind === 'wage' || fund.kind === 'mixed')) warn('売得金は区画（給料等の差押えの範囲）に入れずに配っています。');
+    if (saleTotal && (fund.kind === 'wage' || fund.kind === 'mixed')) warn('売得金は、給料等の差押えの範囲（1/4・1/2）に分けずに配っています。');
     if (saleTotal && !fund.saleAt) warn('売得金：執行官が売得金の交付を受けた日時（配当要求の終期。民執法165条3号）を入れてください。');
     const fundTotal = depositTotal + interestTotal + saleTotal;
     if (saleTotal) {
