@@ -1,6 +1,7 @@
 // 計算エンジンのテスト（設計書の設例をそのまま期待値にする）
 import assert from 'node:assert/strict';
-import { loadHT } from './load.mjs';
+import path from 'node:path';
+import { loadHT, root } from './load.mjs';
 
 const HT = loadHT();
 let pass = 0, fail = 0;
@@ -217,16 +218,16 @@ t('手続費用・供託利息と区画の割付け', () => {
 });
 
 
-// 近藤基「債権配当の実務と書式〔第3版〕」181～221頁（民事法研究会・2021年）の配当表例・弁済金交付計算書例（架空の事例）
+// 近藤基「債権配当の実務と書式〔第3版〕」181～221頁（民事法研究会・2021年）の配当表例・弁済金交付計算書例を基に、計算の結果が変わらないよう金額・日付はそのままにし、名前等を変えたもの
 t('書籍 参考例XV-1（配当表例1）：同順位の按分と充当', () => {
   const r = HT.distribute({
     meta: { date: '2026-11-19' },
     fund: { kind: 'general', deposits: [{ id: 'd1', date: '2026-01-01', amount: 376211, interest: 87 }] },
-    procedureCosts: [{ payee: '株式会社中野', amount: 1871 }],
+    procedureCosts: [{ payee: '株式会社あおば', amount: 1871 }],
     claims: [
-      { id: 'A', creditor: '株式会社中野', kind: 'GEN', filedOn: '2025-01-01', cost: 6660, interest: 0, damages: 10977, principal: 340000 },
-      { id: 'B', creditor: '新宿株式会社', kind: 'GEN', filedOn: '2025-02-01', cost: 3000, interest: 12785, damages: 58772, principal: 250000 },
-      { id: 'C', creditor: '有限会社渋谷', kind: 'GEN', filedOn: '2025-03-01', cost: 0, interest: 0, damages: 0, principal: 455000 },
+      { id: 'A', creditor: '株式会社あおば', kind: 'GEN', filedOn: '2025-01-01', cost: 6660, interest: 0, damages: 10977, principal: 340000 },
+      { id: 'B', creditor: 'いずみ株式会社', kind: 'GEN', filedOn: '2025-02-01', cost: 3000, interest: 12785, damages: 58772, principal: 250000 },
+      { id: 'C', creditor: '有限会社うみかぜ', kind: 'GEN', filedOn: '2025-03-01', cost: 0, interest: 0, damages: 0, principal: 455000 },
     ],
   });
   assert.deepEqual(paidBy(r), { A: 117754, B: 106862, C: 149811 });
@@ -242,8 +243,8 @@ t('書籍 参考例XV-3（弁済金交付計算書例1）：債権者1人', () =
   const r = HT.distribute({
     meta: { date: '2026-11-19' },
     fund: { kind: 'general', deposits: [{ id: 'd1', date: '2026-01-01', amount: 508453, interest: 295 }] },
-    procedureCosts: [{ payee: '豊島憲一', amount: 628 }],
-    claims: [{ id: 'A', creditor: '豊島憲一', kind: 'GEN', cost: 7980, interest: 9857, damages: 103551, principal: 2000000 }],
+    procedureCosts: [{ payee: '山田太郎', amount: 628 }],
+    claims: [{ id: 'A', creditor: '山田太郎', kind: 'GEN', cost: 7980, interest: 9857, damages: 103551, principal: 2000000 }],
   });
   assert.equal(r.type, '弁済金交付計算書');
   assert.deepEqual(paidBy(r), { A: 508120 });
@@ -252,10 +253,10 @@ t('書籍 参考例XV-3（弁済金交付計算書例1）：債権者1人', () =
 
 t('書籍 参考例XV-5（弁済金交付計算書例3）：剰余金を債務者へ', () => {
   const r = HT.distribute({
-    meta: { date: '2026-10-10', debtor: '杉並美子' },
+    meta: { date: '2026-10-10', debtor: '川上花子' },
     fund: { kind: 'general', deposits: [{ id: 'd1', date: '2026-01-01', amount: 950000, interest: 326 }] },
-    procedureCosts: [{ payee: '有限会社練馬', amount: 628 }],
-    claims: [{ id: 'A', creditor: '有限会社練馬', kind: 'GEN', damages: 55038, principal: 725000 }],
+    procedureCosts: [{ payee: '有限会社えのき', amount: 628 }],
+    claims: [{ id: 'A', creditor: '有限会社えのき', kind: 'GEN', damages: 55038, principal: 725000 }],
   });
   assert.equal(r.type, '弁済金交付計算書');
   assert.deepEqual(paidBy(r), { A: 780038 });
@@ -268,10 +269,10 @@ t('書籍 参考例XV-2（配当表例2）：根抵当権は極度額まで、�
   const r = HT.distribute({
     meta: { date: '2026-10-10' },
     fund: { kind: 'general', deposits: [{ id: 'd1', date: '2026-01-01', amount: 6400000, interest: 1920 }] },
-    procedureCosts: [{ payee: '早田コーポレーション', amount: 1871 }],
+    procedureCosts: [{ payee: 'おおぞら商事株式会社', amount: 1871 }],
     claims: [
-      { id: 'A', creditor: '早田コーポレーション', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-08-31', maxAmount: 600000000, damages: 560574605, principal: 5479038390 },
-      { id: 'B', creditor: '港株式会社', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-10-14', damages: 632474144, principal: 2789636127 },
+      { id: 'A', creditor: 'おおぞら商事株式会社', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-08-31', maxAmount: 600000000, damages: 560574605, principal: 5479038390 },
+      { id: 'B', creditor: 'かえで株式会社', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-10-14', damages: 632474144, principal: 2789636127 },
     ],
   });
   assert.deepEqual(paidBy(r), { A: 6400049, B: 0 });
@@ -285,12 +286,12 @@ t('書籍 参考例XVI-1：供託ごとに配当加入が異なる（仮差押�
     meta: { date: '2026-04-20' },
     fund: { kind: 'general', deposits: [dep('2025-11-25', 62341, 24), dep('2025-12-10', 358927, 105),
       dep('2025-12-25', 63481, 18), dep('2026-01-25', 62469, 12), dep('2026-02-25', 63734, 6), dep('2026-03-10', 189746, 0)] },
-    procedureCosts: [{ payee: '株式会社中野', amount: 1850 }],
+    procedureCosts: [{ payee: '株式会社あおば', amount: 1850 }],
     claims: [
-      { id: 'A', creditor: '株式会社中野', kind: 'GEN', effectiveOn: '2025-01-01', filedOn: '2025-01-01', principal: 239883 },
-      { id: 'B', creditor: '新宿株式会社', kind: 'GEN', effectiveOn: '2025-02-01', filedOn: '2025-02-01', principal: 217695 },
-      { id: 'C', creditor: '有限会社渋谷', kind: 'GEN', effectiveOn: '2025-03-01', filedOn: '2025-03-01', principal: 305189 },
-      { id: 'D', creditor: '株式会社板橋', kind: 'GEN', effectiveOn: '2025-12-15T10:00', filedOn: '2025-12-01', principal: 250000, note: '債務名義提出' },
+      { id: 'A', creditor: '株式会社あおば', kind: 'GEN', effectiveOn: '2025-01-01', filedOn: '2025-01-01', principal: 239883 },
+      { id: 'B', creditor: 'いずみ株式会社', kind: 'GEN', effectiveOn: '2025-02-01', filedOn: '2025-02-01', principal: 217695 },
+      { id: 'C', creditor: '有限会社うみかぜ', kind: 'GEN', effectiveOn: '2025-03-01', filedOn: '2025-03-01', principal: 305189 },
+      { id: 'D', creditor: '株式会社きらら', kind: 'GEN', effectiveOn: '2025-12-15T10:00', filedOn: '2025-12-01', principal: 250000, note: '債務名義提出' },
     ],
   });
   assert.deepEqual(paidBy(r), { A: 200989, B: 182399, C: 255707, D: 159918 });
@@ -306,11 +307,11 @@ t('書籍 参考例XVI-3：根抵当権者が途中から加入し、先順位�
   const r = HT.distribute({
     meta: { date: '2026-10-10' },
     fund: { kind: 'general', deposits: [dep('2026-03-31', 180), dep('2026-04-28', 150), dep('2026-05-31', 120), dep('2026-06-29', 90), dep('2026-07-31', 60), dep('2026-08-31', 30)] },
-    procedureCosts: [{ payee: '株式会社江戸川', amount: 1770 }],
+    procedureCosts: [{ payee: '株式会社くすのき', amount: 1770 }],
     claims: [
-      { id: 'E', creditor: '株式会社江戸川', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-08-03', maxAmount: 50000000, effectiveOn: '2026-03-01', principal: 47890000 },
-      { id: 'S', creditor: '株式会社スミダ', kind: 'GEN', effectiveOn: '2026-03-15', cost: 7660, interest: 533468, damages: 4535896, principal: 35477864 },
-      { id: 'T', creditor: '台東株式会社', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-07-21', maxAmount: 150000000, effectiveOn: '2026-06-10', damages: 630501392, principal: 1798578921 },
+      { id: 'E', creditor: '株式会社くすのき', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-08-03', maxAmount: 50000000, effectiveOn: '2026-03-01', principal: 47890000 },
+      { id: 'S', creditor: '株式会社けやき', kind: 'GEN', effectiveOn: '2026-03-15', cost: 7660, interest: 533468, damages: 4535896, principal: 35477864 },
+      { id: 'T', creditor: 'こまち株式会社', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-07-21', maxAmount: 150000000, effectiveOn: '2026-06-10', damages: 630501392, principal: 1798578921 },
     ],
   });
   assert.deepEqual(paidBy(r), { E: 898680, S: 0, T: 900180 });
@@ -339,11 +340,11 @@ t('最後の2年分を超える利息・損害金は一般債権と同順位（�
 const xv1 = (agreement) => ({
   meta: { date: '2026-11-19' }, agreement,
   fund: { kind: 'general', deposits: [{ id: 'd1', date: '2026-01-01', amount: 376211, interest: 87 }] },
-  procedureCosts: [{ payee: '株式会社中野', amount: 1871 }],
+  procedureCosts: [{ payee: '株式会社あおば', amount: 1871 }],
   claims: [
-    { id: 'A', creditor: '株式会社中野', kind: 'GEN', filedOn: '2025-01-01', cost: 6660, damages: 10977, principal: 340000 },
-    { id: 'B', creditor: '新宿株式会社', kind: 'GEN', filedOn: '2025-02-01', cost: 3000, interest: 12785, damages: 58772, principal: 250000 },
-    { id: 'C', creditor: '有限会社渋谷', kind: 'GEN', filedOn: '2025-03-01', principal: 455000 },
+    { id: 'A', creditor: '株式会社あおば', kind: 'GEN', filedOn: '2025-01-01', cost: 6660, damages: 10977, principal: 340000 },
+    { id: 'B', creditor: 'いずみ株式会社', kind: 'GEN', filedOn: '2025-02-01', cost: 3000, interest: 12785, damages: 58772, principal: 250000 },
+    { id: 'C', creditor: '有限会社うみかぜ', kind: 'GEN', filedOn: '2025-03-01', principal: 455000 },
   ],
 });
 t('合意配当：全債権者の合意どおりに配る', () => {
@@ -372,22 +373,22 @@ t('混合供託：還付請求権の帰属の証明前は参考計算として�
 // 参考例XVI-4：第三債務者が4社、抵当権の物上代位と租税の交付要求が絡む。
 // 和暦の年が伏せられているので、書籍の結果（どの債権者が優先したか）と矛盾しない年を補っている。
 export const XVI4 = {
-  meta: { date: '2026-10-10', debtor: '株式会社東京', debtorLabel: '債務者兼所有者' },
+  meta: { date: '2026-10-10', debtor: '株式会社さくら', debtorLabel: '債務者兼所有者' },
   fund: { kind: 'general', deposits: [
-    { id: 'chuo', date: '2026-04-30', amount: 2563080, interest: 882, thirdParty: '株式会社中央' },
-    { id: 'musashino', date: '2026-05-31', amount: 1828482, interest: 630, thirdParty: '武蔵野株式会社' },
-    { id: 'tama', date: '2026-06-30', amount: 1508400, interest: 525, thirdParty: '多摩有限会社' },
-    { id: 'katsushika', date: '2026-07-31', amount: 591300, interest: 190, thirdParty: '葛飾株式会社' },
+    { id: 'shirakaba', date: '2026-04-30', amount: 2563080, interest: 882, thirdParty: 'しらかば株式会社' },
+    { id: 'sumire', date: '2026-05-31', amount: 1828482, interest: 630, thirdParty: 'すみれ株式会社' },
+    { id: 'seseragi', date: '2026-06-30', amount: 1508400, interest: 525, thirdParty: 'せせらぎ有限会社' },
+    { id: 'soyokaze', date: '2026-07-31', amount: 591300, interest: 190, thirdParty: 'そよかぜ株式会社' },
   ] },
-  procedureCosts: [{ payee: '株式会社文京', amount: 3020 }],
+  procedureCosts: [{ payee: '株式会社たちばな', amount: 3020 }],
   claims: [
-    { id: 'A1', creditor: '株式会社文京', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-06-15', depositIds: ['chuo', 'tama'], filedOn: '2025-01-01', interest: 260685797, principal: 1900000000, label: '抵当権・物上代位' },
-    { id: 'K', creditor: '北守男', kind: 'SEC', secType: 'MTG', perfectedOn: '2021-01-10', depositIds: ['chuo', 'tama'], filedOn: '2025-02-01', damages: 46621413, principal: 55599121, label: '抵当権・物上代位' },
-    { id: 'A2', creditor: '株式会社文京', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-06-15', depositIds: ['musashino'], filedOn: '2025-03-01', interest: 260685797, principal: 1900000000, label: '抵当権・物上代位' },
-    { id: 'AD', creditor: '有限会社足立', kind: 'SEC', secType: 'MTG', perfectedOn: '2021-02-06', depositIds: ['katsushika'], filedOn: '2025-04-01', principal: 481292410, label: '抵当権・物上代位' },
-    { id: 'B1', creditor: '○○都', kind: 'TAX', legalDue: '2020-05-25', demandAt: '2025-06-01T10:00', depositIds: ['tama'], damages: 10623748, principal: 34988100, label: '交付要求' },
-    { id: 'T', creditor: '○○都', kind: 'TAX', legalDue: '2020-09-10', demandAt: '2025-06-01T11:00', depositIds: ['tama'], damages: 88844216, principal: 59523300, label: '交付要求' },
-    { id: 'B2', creditor: '○○都', kind: 'TAX', legalDue: '2020-06-23', demandAt: '2025-06-02T10:00', depositIds: ['katsushika'], damages: 10623748, principal: 34988100, label: '交付要求' },
+    { id: 'A1', creditor: '株式会社たちばな', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-06-15', depositIds: ['shirakaba', 'seseragi'], filedOn: '2025-01-01', interest: 260685797, principal: 1900000000, label: '抵当権・物上代位' },
+    { id: 'K', creditor: '森一郎', kind: 'SEC', secType: 'MTG', perfectedOn: '2021-01-10', depositIds: ['shirakaba', 'seseragi'], filedOn: '2025-02-01', damages: 46621413, principal: 55599121, label: '抵当権・物上代位' },
+    { id: 'A2', creditor: '株式会社たちばな', kind: 'SEC', secType: 'MTG', perfectedOn: '2020-06-15', depositIds: ['sumire'], filedOn: '2025-03-01', interest: 260685797, principal: 1900000000, label: '抵当権・物上代位' },
+    { id: 'AD', creditor: '有限会社つばき', kind: 'SEC', secType: 'MTG', perfectedOn: '2021-02-06', depositIds: ['soyokaze'], filedOn: '2025-04-01', principal: 481292410, label: '抵当権・物上代位' },
+    { id: 'B1', creditor: '○○県', kind: 'TAX', legalDue: '2020-05-25', demandAt: '2025-06-01T10:00', depositIds: ['seseragi'], damages: 10623748, principal: 34988100, label: '交付要求' },
+    { id: 'T', creditor: '○○県', kind: 'TAX', legalDue: '2020-09-10', demandAt: '2025-06-01T11:00', depositIds: ['seseragi'], damages: 88844216, principal: 59523300, label: '交付要求' },
+    { id: 'B2', creditor: '○○県', kind: 'TAX', legalDue: '2020-06-23', demandAt: '2025-06-02T10:00', depositIds: ['soyokaze'], damages: 10623748, principal: 34988100, label: '交付要求' },
   ],
 };
 t('書籍 参考例XVI-4：第三債務者が多数、抵当権と租税の優劣', () => {
@@ -395,7 +396,7 @@ t('書籍 参考例XVI-4：第三債務者が多数、抵当権と租税の優�
   assert.deepEqual(paidBy(r), { A1: 2560942, K: 0, A2: 1829112, AD: 0, B1: 1508925, T: 0, B2: 591490 });
   assert.equal(r.fund.total, 6493489);
   assert.equal(r.regions.length, 4);
-  assert.equal(r.regions[2].before.A1, 2158124855); // 多摩有限会社の部分では、中央の部分の配当を差し引いた残り
+  assert.equal(r.regions[2].before.A1, 2158124855); // せせらぎ有限会社の部分では、中央の部分の配当を差し引いた残り
   const b1 = r.rows.find((x) => x.id === 'B1');
   assert.deepEqual({ ...b1.applied }, { cost: 0, interest: 0, damages: 1508925, principal: 0 }); // 本税（損害金欄）から充当
   assert.equal(r.type, '配当表');
@@ -794,6 +795,26 @@ t('預金等と給料等の両方：供託金ごとに差押えの範囲を分�
   assert.equal(JSON.stringify(HT.distribute(only('mixed', 'general')).paid), JSON.stringify(HT.distribute(only('general')).paid));
   assert.equal(JSON.stringify(HT.distribute(only('mixed', 'wage', { net: 200000 })).paid), JSON.stringify(HT.distribute(only('wage', undefined, { net: 200000 })).paid));
 });
+
+// 画面の「設例から選ぶ」の設例（site/js/app/examples.js）が、期待値どおりに計算されること
+{
+  const EX = loadHT([path.join(root, 'site/js/app/examples.js')]);
+  for (const ex of EX.EXAMPLES) {
+    t(`設例一覧 ${ex.id}：${ex.title}`, () => {
+      const r = EX.distribute(JSON.parse(JSON.stringify(ex.input)));
+      const e = JSON.parse(JSON.stringify(ex.expect)); // vm の中で作られたオブジェクトをこちらの形にする
+      assert.equal(r.type, e.type);
+      assert.deepEqual(paidBy(r), e.paid);
+      assert.deepEqual(Object.fromEntries(r.rows.filter((x) => x.held).map((x) => [x.id, x.held])), e.held || {});
+      assert.equal(surplus(r), e.surplus || 0);
+    });
+  }
+  t('設例一覧：id が重ならず、論点・説明がある', () => {
+    const ids = EX.EXAMPLES.map((x) => x.id);
+    assert.equal(new Set(ids).size, ids.length);
+    for (const x of EX.EXAMPLES) assert.ok(x.title && x.desc && x.group && x.ronten.length, x.id);
+  });
+}
 
 console.log(`engine: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

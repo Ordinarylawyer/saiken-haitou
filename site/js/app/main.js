@@ -33,6 +33,19 @@
   let state = blankState();
   // 以前の入力で「一般先取特権・子の監護の費用」としたものは、扶養義務等債権（子の監護費用の先取特権）に直す
   const fixKind = (c) => { if (c.kind === 'GPP' && String(c.gppClass) === '3') { c.kind = 'SUP3'; c.gppClass = 2; } return c; };
+  // 保存した JSON・設例の入力を、入力欄の形に整えて取り込む
+  function adoptInput(s) {
+    state = Object.assign(blankState(), s);
+    state.meta = Object.assign(blankState().meta, s.meta || {});
+    state.settings = Object.assign({}, HT.DEFAULT_SETTINGS, s.settings || {});
+    state.agreement = Object.assign({ enabled: false, amounts: {} }, s.agreement || {});
+    state.fund = Object.assign(blankState().fund, s.fund || {});
+    state.fund.deposits = (state.fund.deposits || []).map((d) => { const b0 = blankDeposit(); return Object.assign(b0, d, { wage: Object.assign(b0.wage, d.wage || {}) }); });
+    if (!s.procedureCosts) state.procedureCosts = [];
+    state.claims = (state.claims || []).map((c) => fixKind(Object.assign(blankClaim(), c)));
+    state.history = state.history || [];
+  }
+  let example = null; // 読み込んだ設例（期待値との一致を示す）
   // 印刷の選択（事件の入力ではないので JSON には保存しない）
   const printOpts = { pageNo: true, start: 1, heading: true };
   let printPanel = false;
@@ -115,7 +128,47 @@
   ${sup ? `<div class="tpl-patterns"><label class="chk"><input type="radio" name="tpl-lien" id="tpl-lien-yes" value="1" ${tpl.lien ? 'checked' : ''}> 養育費に子の監護費用の先取特権あり（担保権の実行又は文書による配当要求）</label>
     <label class="chk"><input type="radio" name="tpl-lien" id="tpl-lien-no" value="0" ${tpl.lien ? '' : 'checked'}> 先取特権なし（債務名義による差押え・配当要求だけ）</label></div>` : ''}
   <div class="row"><button class="btn primary" data-act="applyTpl">この形で始める</button></div>
+  ${renderExamples()}
 </section>`;
+  }
+  const RONTEN_SECTIONS = { 1: '第1-手続の分岐と配当加入', 2: '第2-仮差押えを原因とする供託', 3: '第3-配当原資と区画', 4: '第4-順位', 5: '第5-扶養義務等債権', 6: '第6-仮差押えと本執行への移行', 7: '第7-債権額充当端数配当表の記載', 8: '第8-継続的給付と回次の繰越', 9: '第9-特殊な場面' };
+  const rontenLink = (r) => `<a href="${REPO}/blob/main/docs/%E8%AB%96%E7%82%B9%E6%95%B4%E7%90%86.md#${encodeURIComponent(RONTEN_SECTIONS[r.split('-')[0]] || '')}" target="_blank" rel="noopener noreferrer">${esc(r)}</a>`;
+  function renderExamples() {
+    const list = HT.EXAMPLES || [];
+    if (!list.length) return '';
+    const groups = [...new Set(list.map((x) => x.group))];
+    return `<div class="examples"><h3>または、設例から選ぶ</h3>
+  <p class="hint">テストで計算の結果を確かめている事例です。読み込むと、そのまま書き換えてテンプレートの代わりに使えます。番号は論点整理の論点です。</p>
+  ${groups.map((g) => `<details class="ex-group"><summary>${esc(g)}（${list.filter((x) => x.group === g).length}件）</summary>
+    <ul>${list.filter((x) => x.group === g).map((x) => `<li><button class="btn small" data-act="loadExample" data-id="${esc(x.id)}">読み込む</button>
+      <span class="ex-title">${esc(x.title)}</span>${x.source ? '<span class="ex-book">近藤本</span>' : ''}<span class="ex-desc">${esc(x.desc)}（論点 ${x.ronten.map(esc).join('・')}）</span></li>`).join('')}</ul></details>`).join('')}
+</div>`;
+  }
+  function loadExample(id) {
+    const ex = (HT.EXAMPLES || []).find((x) => x.id === id);
+    if (!ex) return false;
+    if (!isBlank() && !confirm('いまの入力を消して、設例の入力に入れ替えます。よろしいですか。')) return false;
+    adoptInput(JSON.parse(JSON.stringify(ex.input)));
+    example = ex; guide = null; tplOpen = false;
+    return true;
+  }
+  // 設例の期待値と、いまの計算の結果が一致するか
+  function exampleMatches(r) {
+    if (!example || !r) return null;
+    const e = example.expect;
+    const paid = Object.fromEntries(r.rows.filter((x) => x.type === 'claim').map((x) => [x.id, x.paid]));
+    const held = Object.fromEntries(r.rows.filter((x) => x.held).map((x) => [x.id, x.held]));
+    const surplus = (r.rows.find((x) => x.type === 'debtor') || { paid: 0 }).paid;
+    const same = (a, b) => JSON.stringify(Object.entries(a || {}).sort()) === JSON.stringify(Object.entries(b || {}).sort());
+    return r.type === e.type && same(paid, e.paid) && same(held, e.held || {}) && surplus === (e.surplus || 0);
+  }
+  function exampleBanner(r) {
+    if (!example || viewing != null || viewingAdd) return '';
+    const ok = exampleMatches(r);
+    return `<div class="ex-banner noprint ${ok ? 'ok' : ''}"><div class="row between"><strong>設例：${esc(example.title)}</strong><button class="btn small" data-act="closeExample">閉じる</button></div>
+  <p>${esc(example.desc)}　論点 ${example.ronten.map(rontenLink).join('・')}</p>
+  ${example.source ? `<p class="hint">出典：${esc(example.source)}</p>` : ''}
+  <p class="ex-check">${ok ? '✓ テストの期待値と一致しています。' : '入力を設例から変えているため、設例の結果とは異なります。'}</p></div>`;
   }
   function applyTemplate() {
     const cnt = (v) => Math.min(Math.max(HT.int(v) || 1, 1), 20);
@@ -141,6 +194,7 @@
     steps.push('右の配当表を確かめ、「印刷」又は「Excel で保存」で出力します。続きは「JSON に保存」で残せます。');
     guide = steps;
     tplOpen = false;
+    example = null;
     return true;
   }
 
@@ -481,7 +535,7 @@ ${dc.outcome === 'relative' ? `<label class="field"><span class="label">異議�
 <p class="hint">留保していた供託金に付いた供託利息は含めていません。</p>
 <button class="btn" data-act="showAdditional">追加配当表を表示</button>
 </details>` : '';
-    $('#result').innerHTML = `${banner}${warn}
+    $('#result').innerHTML = `${banner}${exampleBanner(r)}${warn}
 <div class="row between noprint"><strong>${esc(r.type)}</strong>
   <span>${viewing != null || viewingAdd ? '' : '<button class="btn" data-act="carry" title="給料・賃料など継続的な給付の差押えで、この回の配当を充当した残額を次の供託の入力に引き継ぎます">次回の配当へ繰り越す</button>'}
   <button class="btn" data-act="print">印刷（A4横）</button>
@@ -618,11 +672,13 @@ ${regions}`;
       case 'saveAnon': download(`配当計算_報告用_${stamp()}.json`, new Blob([JSON.stringify(anonymize(toInput()), null, 2)], { type: 'application/json' })); return;
       case 'save': download(`配当計算_${stamp()}.json`, new Blob([JSON.stringify(toInput(), null, 2)], { type: 'application/json' })); return;
       case 'load': $('#loadfile').click(); return;
-      case 'clear': if (!confirm('入力をすべて消します。よろしいですか。')) return; state = blankState(); tplOpen = null; guide = null; break;
+      case 'clear': if (!confirm('入力をすべて消します。よろしいですか。')) return; state = blankState(); tplOpen = null; guide = null; example = null; break;
       case 'openTpl': tplOpen = true; guide = null; renderForm(); window.scrollTo({ top: 0, behavior: 'smooth' }); return;
       case 'closeTpl': tplOpen = false; renderForm(); return;
       case 'closeGuide': guide = null; renderForm(); return;
       case 'applyTpl': if (!applyTemplate()) return; break;
+      case 'loadExample': if (!loadExample(b.dataset.id)) return; break;
+      case 'closeExample': example = null; renderResult(); return;
       default: return;
     }
     renderForm();
@@ -635,12 +691,8 @@ ${regions}`;
     const rd = new FileReader();
     rd.onload = () => {
       try {
-        const s = JSON.parse(rd.result);
-        state = Object.assign(blankState(), s);
-        state.settings = Object.assign({}, HT.DEFAULT_SETTINGS, s.settings || {});
-        state.agreement = Object.assign({ enabled: false, amounts: {} }, s.agreement || {});
-        state.claims = (state.claims || []).map((c) => fixKind(Object.assign(blankClaim(), c)));
-        state.history = state.history || [];
+        adoptInput(JSON.parse(rd.result));
+        example = null; guide = null; tplOpen = false;
         renderForm(); compute();
       } catch (err) { alert(`読み込めませんでした：${err.message}`); }
       e.target.value = '';

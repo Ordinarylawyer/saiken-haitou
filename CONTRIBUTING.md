@@ -12,6 +12,7 @@
 | 直したいもの | 直すファイル |
 |---|---|
 | 配当の計算（順位・区画・按分・充当・繰越・追加配当など） | `site/js/engine/haitou.js` |
+| 画面の「設例から選ぶ」の設例（入力と期待値） | `site/js/app/examples.js`（テストもこれを読み、期待値どおりかを確かめる） |
 | 計算のテスト（設例と期待値） | `tests/engine.mjs` |
 | 入力画面・配当表の表示・印刷・Excel 出力 | `site/js/app/`（`main.js`・`table.js`・`print.js`・`excel.js`）、`site/css/app.css` |
 
