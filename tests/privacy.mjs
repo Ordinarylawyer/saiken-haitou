@@ -19,7 +19,7 @@ t('CSP で通信を禁止', () => {
 t('外部のスクリプト・スタイルを読まない', () => {
   assert.doesNotMatch(html, /<(script|link)[^>]+(src|href)="https?:/);
 });
-const jsFiles = ['site/js/engine/haitou.js', 'site/js/app/table.js', 'site/js/app/excel.js', 'site/js/app/print.js', 'site/js/app/main.js'];
+const jsFiles = ['site/js/engine/haitou.js', 'site/js/app/table.js', 'site/js/app/excel.js', 'site/js/app/print.js', 'site/js/app/examples.js', 'site/js/app/main.js'];
 t('通信・保存の API を使わない', () => {
   for (const f of jsFiles) {
     const src = fs.readFileSync(path.join(root, f), 'utf8');
