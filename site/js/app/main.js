@@ -63,10 +63,15 @@
   document.addEventListener('input', (e) => {
     const d = e.target.dataset || {};
     if (d.case == null) return;
-    const c = state.meta.cases[Number(d.case)];
+    const k = Number(d.case);
+    const c = state.meta.cases[k];
     if (!c) return;
+    const before = caseText(c);
     c[d.part] = e.target.value;
-    syncCaseNos(); schedule();
+    syncCaseNos();
+    const dep = state.fund.deposits[k];
+    if (dep && (!dep.caseNo || dep.caseNo === before)) dep.caseNo = caseText(c); // k番目の供託金はk番目の事件番号に合わせる
+    schedule();
     // 供託金の欄の選択肢だけを作り直す（入力中の欄のフォーカスを失わないよう、全体は描き直さない）
     state.fund.deposits.forEach((dep, i) => {
       const sel0 = document.querySelector(`[data-bind="fund.deposits.${i}.caseNo"]`);
@@ -135,11 +140,11 @@
     const sup = tpl.pattern !== 'gen';
     return `<section class="card tpl">
   <div class="row between"><h2>テンプレートから始める</h2>${tplOpen ? '<button class="btn small" data-act="closeTpl">閉じる</button>' : ''}</div>
-  <p class="hint">配当事件の数と債権者の構成を選ぶと、典型的な形の入力欄を用意します。あとは金額・日付・名前を入れていくだけです。入力欄はあとから追加・削除できます。</p>
+  <p class="hint">リ事件の数と債権者の構成を選ぶと、典型的な形の入力欄を用意します。あとは金額・日付・名前を入れていくだけです。入力欄はあとから追加・削除できます。</p>
   <div class="tpl-kinds">
-    <span class="label">差押債権の種類（両方なら両方に印）と、それぞれの配当事件（リ事件）の数＝供託金の数</span>
-    <div class="tpl-kind"><label class="chk"><input type="checkbox" id="tpl-general" ${tpl.general ? 'checked' : ''}> 預金・売掛金など</label>${tpl.general ? `<label class="chk">事件の数 <input class="in num tpl-n" id="tpl-nGeneral" inputmode="numeric" value="${esc(tpl.nGeneral)}"></label>` : ''}</div>
-    <div class="tpl-kind"><label class="chk"><input type="checkbox" id="tpl-wage" ${tpl.wage ? 'checked' : ''}> 給料等（民執法152条）</label>${tpl.wage ? `<label class="chk">事件の数 <input class="in num tpl-n" id="tpl-nWage" inputmode="numeric" value="${esc(tpl.nWage)}"></label>` : ''}</div>
+    <span class="label">差押債権の種類（両方なら両方に印）と、それぞれのリ事件の数（＝供託金の数）</span>
+    <div class="tpl-kind"><label class="chk"><input type="checkbox" id="tpl-general" ${tpl.general ? 'checked' : ''}> 預金・売掛金など</label>${tpl.general ? `<label class="chk">リ事件の数 <input class="in num tpl-n" id="tpl-nGeneral" inputmode="numeric" value="${esc(tpl.nGeneral)}"></label>` : ''}</div>
+    <div class="tpl-kind"><label class="chk"><input type="checkbox" id="tpl-wage" ${tpl.wage ? 'checked' : ''}> 給料等（民執法152条）</label>${tpl.wage ? `<label class="chk">リ事件の数 <input class="in num tpl-n" id="tpl-nWage" inputmode="numeric" value="${esc(tpl.nWage)}"></label>` : ''}</div>
   </div>
   <div class="tpl-patterns">${TPL_PATTERNS.map(([v, t]) => `<label class="chk"><input type="radio" name="tpl-pattern" id="tpl-pattern-${v}" value="${v}" ${tpl.pattern === v ? 'checked' : ''}> ${t}</label>`).join('')}</div>
   ${sup ? `<div class="tpl-patterns"><label class="chk"><input type="radio" name="tpl-lien" id="tpl-lien-yes" value="1" ${tpl.lien ? 'checked' : ''}> 養育費に子の監護費用の先取特権あり（担保権の実行又は文書による配当要求）</label>
@@ -203,7 +208,7 @@
     if (tax) state.claims.push(Object.assign(blankClaim(), { kind: 'TAX', label: '（税目）・交付要求' }));
     if (sup) state._sup = { asserted: tpl.lien };
     const steps = [
-      '「1 事件」：配当期日、裁判所・書記官、債務者と、配当等事件（リ）の番号を年と号に分けて入れます（事件の数だけ欄を用意してあります）。',
+      '「1 事件」：配当期日、裁判所・書記官、債務者と、配当等事件（リ）の番号を年と号に分けて入れます（リ事件の数だけ欄を用意してあります）。',
       `「2 配当原資」：供託金${n > 1 ? `1〜${n}` : ''}ごとに、供託日（日時）・供託金を入れ、配当等事件の番号（リ）を「1 事件」に入れた番号から選びます。${nG && nW ? `供託金1${nG > 1 ? `〜${nG}` : ''}は預金・売掛金など、供託金${nG + 1}${nW > 1 ? `〜${n}` : ''}は給料等として用意しました。` : ''}${nW ? '給料等は手取額も入れます。' : ''}`,
       '「4 債権者」：債権者ごとに、名前・事件番号・差押え等の効力発生の日時・請求債権の額を入れます。',
     ];
@@ -238,8 +243,8 @@
   function renderCases() {
     const cases = state.meta.cases || [];
     return `<div class="cases">
-    <div class="case-count"><label class="chk">配当等事件（リ）の数 <input class="in num case-n" id="case-count" inputmode="numeric" value="${cases.length}"></label>
-      <button class="btn small" data-act="setCaseCount">欄を作る</button><span class="hint">併合した事件も含めた数です。</span></div>
+    <div class="case-count"><label class="chk">リ事件の数 <input class="in num case-n" id="case-count" inputmode="numeric" value="${cases.length}"></label>
+      <button class="btn small" data-act="setCaseCount">欄を作る</button><span class="hint">併合した事件も含めた数です。同じ数だけ「2 配当原資」の供託金の欄を用意し、順に事件番号を当てます。</span></div>
     ${cases.map((c, k) => c.raw != null ? `<div class="case-row bad-row"><span class="case-k">${k + 1}</span><input class="in case-raw" data-case="${k}" data-part="raw" value="${esc(c.raw)}">
       <button class="btn small" data-act="fixCase" data-i="${k}">年と号で入れ直す</button>
       <span class="hint warn">形式が「令和○年（リ）第○号」ではありません。${/[（(][ルナヨ][)）]/.test(c.raw) ? '差押え等の事件の番号（ル・ナ・ヨ）は、「4 債権者」の各債権者の欄に入れます。' : ''}</span></div>`
@@ -734,8 +739,16 @@ ${regions}`;
         const n = Math.min(Math.max(HT.int(document.getElementById('case-count').value) || 1, 1), 30);
         const cases = state.meta.cases || [];
         if (n < cases.length && cases.slice(n).some((c) => caseText(c)) && !confirm(`${n + 1}件目以降の事件番号を消します。よろしいですか。`)) return;
+        const deps = state.fund.deposits;
+        const filled = (d) => d && (d.amount || d.date || d.net);
+        if (n < deps.length && deps.slice(n).some(filled) && !confirm(`供託金${n + 1}以降の入力も消えます。よろしいですか。`)) return;
         state.meta.cases = Array.from({ length: n }, (_, k) => cases[k] || { year: '', no: '' });
-        syncCaseNos(); break;
+        syncCaseNos();
+        // リ事件の数だけ供託金の欄を用意し、k番目の供託金にk番目の事件番号を当てる（テンプレートと同じ）
+        const last = deps[deps.length - 1];
+        state.fund.deposits = Array.from({ length: n }, (_, k) => deps[k] || Object.assign(blankDeposit(), last && last.debtKind ? { debtKind: last.debtKind } : {}));
+        state.fund.deposits.forEach((d, k) => { const t = caseText(state.meta.cases[k] || {}); if (!d.caseNo && t) d.caseNo = t; });
+        break;
       }
       case 'fixCase': state.meta.cases[i] = { year: '', no: '' }; syncCaseNos(); break;
       case 'loadExample': if (!loadExample(b.dataset.id)) return; break;
