@@ -87,6 +87,8 @@ th.ht-stack { text-align: left; white-space: nowrap; }
 .ht-r { text-align: right; }
 .ht-prov { margin: 0 0 4px; font-size: 13px; color: #a80000; }
 
+.in.bad { border-color: var(--danger); color: var(--danger); }
+
 /* テンプレート */
 .card.tpl { border: 2px solid var(--primary); background: var(--primary-light); }
 .tpl-kinds { margin: 4px 0 6px; }

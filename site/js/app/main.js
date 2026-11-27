@@ -57,6 +57,7 @@
     printOpts.start = n >= 1 ? n : 1;
   }
   document.addEventListener('change', (e) => { if (e.target.id && e.target.id.startsWith('po-')) readPrintOpts(); });
+  document.addEventListener('change', (e) => { if (e.target.dataset && e.target.dataset.bind === 'meta.caseNos') renderForm(); });
   document.addEventListener('change', (e) => {
     const id = e.target.id || '';
     if (!id.startsWith('tpl-')) return;
@@ -185,8 +186,8 @@
     if (tax) state.claims.push(Object.assign(blankClaim(), { kind: 'TAX', label: '（税目）・交付要求' }));
     if (sup) state._sup = { asserted: tpl.lien };
     const steps = [
-      '「1 事件」：配当期日、裁判所・書記官、債務者、事件番号を入れます。',
-      `「2 配当原資」：供託金${n > 1 ? `1〜${n}` : ''}ごとに、供託日（日時）・供託金・配当事件の番号（リ）を入れます。${nG && nW ? `供託金1${nG > 1 ? `〜${nG}` : ''}は預金・売掛金など、供託金${nG + 1}${nW > 1 ? `〜${n}` : ''}は給料等として用意しました。` : ''}${nW ? '給料等は手取額も入れます。' : ''}`,
+      '「1 事件」：配当期日、裁判所・書記官、債務者、配当等事件の番号（リ）を入れます。',
+      `「2 配当原資」：供託金${n > 1 ? `1〜${n}` : ''}ごとに、供託日（日時）・供託金を入れ、配当等事件の番号（リ）を「1 事件」に入れた番号から選びます。${nG && nW ? `供託金1${nG > 1 ? `〜${nG}` : ''}は預金・売掛金など、供託金${nG + 1}${nW > 1 ? `〜${n}` : ''}は給料等として用意しました。` : ''}${nW ? '給料等は手取額も入れます。' : ''}`,
       '「4 債権者」：債権者ごとに、名前・事件番号・差押え等の効力発生の日時・請求債権の額を入れます。',
     ];
     if (sup) steps.push(`「5 扶養義務等債権」：養育費の債権者・月額・子の数・未払の支払期を入れて「債権者欄に加える」を押します。${tpl.lien ? '先取特権の部分（月8万円×子の数まで）とそれ以外の2行に分けて加えます。' : '先取特権の部分は作らず、1行で加えます。'}加えた行に事件番号・効力発生の日時を入れます。`);
@@ -201,6 +202,17 @@
   // ---------------------------------------------------------------
   // 画面
   // ---------------------------------------------------------------
+  // 「1 事件」に入れた配当等事件の番号（1行に1件）
+  const caseList = () => String(state.meta.caseNos || '').split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+  // 供託金ごとの配当等事件の番号は、誤入力を防ぐため「1 事件」に入れた番号から選ぶ
+  function caseSelect(d, i) {
+    const list = caseList().filter((c) => !/[（(][ルナヨ][)）]/.test(c)); // 差押事件等の番号は選ばせない
+    const cur = d.caseNo || '';
+    const opts = [['', list.length ? '（選ぶ）' : '（先に「1 事件」に番号を入れる）'], ...list.map((c) => [c, c])];
+    if (cur && !list.includes(cur)) opts.push([cur, `${cur}（「1 事件」にない番号）`]);
+    return `<label class="field"><span class="label">配当等事件の番号（リ）</span><select class="in${cur && !list.includes(cur) ? ' bad' : ''}" data-bind="fund.deposits.${i}.caseNo" ${list.length || cur ? '' : 'disabled'}>${
+      opts.map(([v, t]) => `<option value="${esc(v)}" ${cur === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
+  }
   function renderForm() {
     const s = state;
     const mixed = s.fund.kind === 'mixed';
@@ -218,8 +230,9 @@ ${renderTemplate()}
     ${inp('meta.debtor', '債務者')}
     ${sel('meta.debtorLabel', '債務者欄の表示', [['債　務　者', '債務者'], ['債務者兼所有者', '債務者兼所有者（担保権の実行）']])}
   </div>
-  <label class="field"><span class="label">事件番号（1行に1件。併合した事件をすべて）</span>
-    <textarea class="in wide" rows="2" data-bind="meta.caseNos" placeholder="令和○年（リ）第○号&#10;令和○年（ル）第○号">${esc(s.meta.caseNos)}</textarea></label>
+  <label class="field"><span class="label">配当等事件の番号（リ）（1行に1件。併合した事件をすべて）</span>
+    <textarea class="in wide" rows="2" data-bind="meta.caseNos" placeholder="令和○年（リ）第○号&#10;令和○年（リ）第○号">${esc(s.meta.caseNos)}</textarea></label>
+  ${caseList().some((c) => /[（(][ルナヨ][)）]/.test(c)) ? '<p class="hint warn">ここには配当等事件の番号（リ）を入れます。差押え・担保権の実行・仮差押えの事件の番号（ル・ナ・ヨ）は、「4 債権者」の各債権者の欄に入れます。</p>' : ''}
   ${renderHistory()}
 </section>
 
@@ -242,7 +255,7 @@ ${renderTemplate()}
       ${inp(`fund.deposits.${i}.interest`, '供託利息（円・空欄なら自動計算）', '', 'num')}
       ${inp(`fund.deposits.${i}.depositCost`, '第三債務者の供託費用（円）', '', 'num')}
       ${wageDep(d) ? inp(`fund.deposits.${i}.net`, '手取額（給料等−所得税・住民税・社会保険料）', '', 'num') : ''}
-      ${inp(`fund.deposits.${i}.caseNo`, '配当事件の番号（リ）', '', 'text', 'placeholder="令和○年（リ）第○号"')}
+      ${caseSelect(d, i)}
       ${inp(`fund.deposits.${i}.depositNo`, '供託番号')}
       ${inp(`fund.deposits.${i}.office`, '供託所')}
       ${inp(`fund.deposits.${i}.thirdParty`, '第三債務者（多数のとき状況表でまとめる）')}
