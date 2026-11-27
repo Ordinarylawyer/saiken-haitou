@@ -18,7 +18,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -33,14 +33,14 @@
       },
       "procedureCosts": [
         {
-          "payee": "債権者X",
+          "payee": "X",
           "amount": 6000
         }
       ],
       "claims": [
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "filedOn": "2026-01-10",
           "principal": 1240000,
@@ -48,7 +48,7 @@
         },
         {
           "id": "Y",
-          "creditor": "債権者Y",
+          "creditor": "Y",
           "kind": "GEN",
           "filedOn": "2026-02-10",
           "principal": 800000,
@@ -56,7 +56,7 @@
         },
         {
           "id": "Z",
-          "creditor": "債権者Z",
+          "creditor": "Z",
           "kind": "GEN",
           "filedOn": "2026-03-10",
           "principal": 360000,
@@ -87,7 +87,7 @@
       "meta": {
         "date": "2026-11-19",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -164,7 +164,7 @@
       "meta": {
         "date": "2026-11-19",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -266,7 +266,7 @@
       "meta": {
         "date": "2026-11-19",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "agreement": {
         "enabled": true,
@@ -346,7 +346,7 @@
       "meta": {
         "date": "2026-06-30",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -362,7 +362,7 @@
       "claims": [
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "damages": 10000,
           "principal": 1000000,
@@ -400,7 +400,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "wage",
@@ -417,7 +417,7 @@
       "claims": [
         {
           "id": "W3",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP3",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -426,7 +426,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "filedOn": "2026-02-01",
           "principal": 500000,
@@ -455,7 +455,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "wage",
@@ -472,7 +472,7 @@
       "claims": [
         {
           "id": "W2",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP2",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -481,7 +481,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "filedOn": "2026-02-01",
           "principal": 500000,
@@ -510,7 +510,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "wage",
@@ -527,7 +527,7 @@
       "claims": [
         {
           "id": "W3",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP3",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -536,7 +536,7 @@
         },
         {
           "id": "W2",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP2",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -545,7 +545,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "filedOn": "2026-02-01",
           "principal": 500000,
@@ -575,7 +575,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "wage",
@@ -592,7 +592,7 @@
       "claims": [
         {
           "id": "W3",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP3",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -601,7 +601,7 @@
         },
         {
           "id": "W2",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP2",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -610,7 +610,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "filedOn": "2026-02-01",
           "principal": 500000,
@@ -639,7 +639,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "wage",
@@ -656,7 +656,7 @@
       "claims": [
         {
           "id": "W2",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP2",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -665,7 +665,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "filedOn": "2026-02-01",
           "principal": 150000,
@@ -694,7 +694,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "wage",
@@ -711,7 +711,7 @@
       "claims": [
         {
           "id": "W2",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP2",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -720,7 +720,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "filedOn": "2026-02-01",
           "principal": 100000,
@@ -748,7 +748,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "wage",
@@ -765,7 +765,7 @@
       "claims": [
         {
           "id": "W3",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP3",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -774,7 +774,7 @@
         },
         {
           "id": "W2",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP2",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -783,7 +783,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "filedOn": "2026-02-01",
           "principal": 500000,
@@ -812,7 +812,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "mixed",
@@ -837,7 +837,7 @@
       "claims": [
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-05-01T10:00",
           "principal": 1000000,
@@ -845,7 +845,7 @@
         },
         {
           "id": "W",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP2",
           "effectiveOn": "2026-05-01T10:00",
           "principal": 300000,
@@ -873,7 +873,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -889,7 +889,7 @@
       "claims": [
         {
           "id": "M",
-          "creditor": "債権者M",
+          "creditor": "M",
           "kind": "SEC",
           "secType": "MTG",
           "perfectedOn": "2024-05-01",
@@ -910,7 +910,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2025-06-01",
           "filedOn": "2026-01-10",
@@ -940,7 +940,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -956,7 +956,7 @@
       "claims": [
         {
           "id": "M",
-          "creditor": "債権者M",
+          "creditor": "M",
           "kind": "SEC",
           "secType": "MTG",
           "perfectedOn": "2024-05-01",
@@ -977,7 +977,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2025-06-01",
           "filedOn": "2026-01-10",
@@ -1007,7 +1007,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -1023,7 +1023,7 @@
       "claims": [
         {
           "id": "M",
-          "creditor": "債権者M",
+          "creditor": "M",
           "kind": "SEC",
           "secType": "MTG",
           "perfectedOn": "2024-05-01",
@@ -1034,7 +1034,7 @@
         },
         {
           "id": "A",
-          "creditor": "債権者A",
+          "creditor": "A",
           "kind": "GEN",
           "effectiveOn": "2024-04-01",
           "filedOn": "2024-03-20",
@@ -1043,7 +1043,7 @@
         },
         {
           "id": "B",
-          "creditor": "債権者B",
+          "creditor": "B",
           "kind": "GEN",
           "effectiveOn": "2025-06-01",
           "filedOn": "2025-05-20",
@@ -1073,7 +1073,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -1089,7 +1089,7 @@
       "claims": [
         {
           "id": "M",
-          "creditor": "債権者M",
+          "creditor": "M",
           "kind": "SEC",
           "secType": "MTG",
           "perfectedOn": "2024-05-01",
@@ -1138,7 +1138,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -1154,7 +1154,7 @@
       "claims": [
         {
           "id": "E",
-          "creditor": "債権者E",
+          "creditor": "E",
           "kind": "GPP",
           "gppClass": 2,
           "filedOn": "2026-03-01",
@@ -1163,7 +1163,7 @@
         },
         {
           "id": "W3",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP3",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -1172,7 +1172,7 @@
         },
         {
           "id": "W2",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP2",
           "group": "W",
           "filedOn": "2026-01-05",
@@ -1181,7 +1181,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "filedOn": "2026-02-01",
           "principal": 500000,
@@ -1212,7 +1212,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "wage",
@@ -1239,7 +1239,7 @@
         },
         {
           "id": "W3",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP3",
           "filedOn": "2026-01-05",
           "principal": 120000,
@@ -1247,7 +1247,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "filedOn": "2026-02-01",
           "principal": 500000,
@@ -1277,7 +1277,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "wage",
@@ -1304,7 +1304,7 @@
         },
         {
           "id": "W3",
-          "creditor": "債権者W",
+          "creditor": "W",
           "kind": "SUP3",
           "filedOn": "2026-01-05",
           "principal": 120000,
@@ -1312,7 +1312,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "filedOn": "2026-02-01",
           "principal": 500000,
@@ -1342,7 +1342,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -1358,7 +1358,7 @@
       "claims": [
         {
           "id": "M",
-          "creditor": "債権者M",
+          "creditor": "M",
           "kind": "SEC",
           "secType": "MTG",
           "perfectedOn": "2020-01-10",
@@ -1371,7 +1371,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-04-01",
           "filedOn": "2026-03-20",
@@ -1401,7 +1401,7 @@
       "meta": {
         "date": "2026-10-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -1466,7 +1466,7 @@
       "meta": {
         "date": "2026-10-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -1742,7 +1742,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -1759,7 +1759,7 @@
       "claims": [
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-05-01",
           "filedOn": "2026-04-20",
@@ -1768,7 +1768,7 @@
         },
         {
           "id": "P",
-          "creditor": "債権者P",
+          "creditor": "P",
           "kind": "PRV",
           "effectiveOn": "2026-06-01",
           "filedOn": "2026-05-20",
@@ -1777,7 +1777,7 @@
         },
         {
           "id": "Y",
-          "creditor": "債権者Y",
+          "creditor": "Y",
           "kind": "GEN",
           "effectiveOn": "2026-11-02",
           "filedOn": "2026-11-02",
@@ -1809,7 +1809,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -1827,7 +1827,7 @@
       "claims": [
         {
           "id": "P",
-          "creditor": "債権者C",
+          "creditor": "C",
           "kind": "PRV",
           "caseNo": "令和8年（ヨ）第5号",
           "effectiveOn": "2026-05-01T10:00",
@@ -1837,7 +1837,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-06-01T10:00",
           "filedOn": "2026-05-25",
@@ -1846,7 +1846,7 @@
         },
         {
           "id": "C",
-          "creditor": "債権者C",
+          "creditor": "C",
           "kind": "GEN",
           "fromPrv": "P",
           "effectiveOn": "2026-07-01T10:00",
@@ -1877,7 +1877,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -1902,7 +1902,7 @@
       "claims": [
         {
           "id": "P",
-          "creditor": "債権者C",
+          "creditor": "C",
           "kind": "PRV",
           "effectiveOn": "2026-05-01T10:00",
           "filedOn": "2026-04-25",
@@ -1911,7 +1911,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-06-01T10:00",
           "filedOn": "2026-05-25",
@@ -1920,7 +1920,7 @@
         },
         {
           "id": "C",
-          "creditor": "債権者C",
+          "creditor": "C",
           "kind": "GEN",
           "fromPrv": "P",
           "effectiveOn": "2026-07-01T10:00",
@@ -1951,7 +1951,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -1967,7 +1967,7 @@
       "claims": [
         {
           "id": "P",
-          "creditor": "債権者C",
+          "creditor": "C",
           "kind": "PRV",
           "caseNo": "令和8年（ヨ）第5号",
           "effectiveOn": "2026-05-01",
@@ -1977,7 +1977,7 @@
         },
         {
           "id": "C",
-          "creditor": "債権者C",
+          "creditor": "C",
           "kind": "GEN",
           "fromPrv": "P",
           "effectiveOn": "2026-07-01",
@@ -1987,7 +1987,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-06-01",
           "filedOn": "2026-05-25",
@@ -2023,7 +2023,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -2042,7 +2042,7 @@
       "claims": [
         {
           "id": "P",
-          "creditor": "債権者P",
+          "creditor": "P",
           "kind": "PRV",
           "effectiveOn": "2026-05-01T10:00",
           "filedOn": "2026-04-25",
@@ -2051,7 +2051,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-07-01T10:00",
           "filedOn": "2026-06-20",
@@ -2060,7 +2060,7 @@
         },
         {
           "id": "Y",
-          "creditor": "債権者Y",
+          "creditor": "Y",
           "kind": "GEN",
           "effectiveOn": "2026-07-05T10:00",
           "filedOn": "2026-07-01",
@@ -2093,7 +2093,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -2112,7 +2112,7 @@
       "claims": [
         {
           "id": "P",
-          "creditor": "債権者P",
+          "creditor": "P",
           "kind": "PRV",
           "effectiveOn": "2026-05-01T10:00",
           "filedOn": "2026-04-25",
@@ -2121,7 +2121,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-07-01T10:00",
           "filedOn": "2026-06-20",
@@ -2153,7 +2153,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -2172,7 +2172,7 @@
       "claims": [
         {
           "id": "P",
-          "creditor": "債権者P",
+          "creditor": "P",
           "kind": "PRV",
           "effectiveOn": "2026-05-01T10:00",
           "filedOn": "2026-04-25",
@@ -2181,7 +2181,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-07-01T10:00",
           "filedOn": "2026-06-20",
@@ -2190,7 +2190,7 @@
         },
         {
           "id": "Y",
-          "creditor": "債権者Y",
+          "creditor": "Y",
           "kind": "GEN",
           "effectiveOn": "2026-07-05T10:00",
           "filedOn": "2026-07-01",
@@ -2199,7 +2199,7 @@
         },
         {
           "id": "C",
-          "creditor": "債権者P",
+          "creditor": "P",
           "kind": "GEN",
           "fromPrv": "P",
           "effectiveOn": "2026-06-25T10:00",
@@ -2230,7 +2230,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "wage",
@@ -2270,7 +2270,7 @@
       "claims": [
         {
           "id": "P",
-          "creditor": "債権者P",
+          "creditor": "P",
           "kind": "PRV",
           "effectiveOn": "2026-05-01T10:00",
           "principal": 120000,
@@ -2278,7 +2278,7 @@
         },
         {
           "id": "S",
-          "creditor": "債権者S",
+          "creditor": "W",
           "kind": "SUP2",
           "effectiveOn": "2026-08-01T10:00",
           "principal": 300000,
@@ -2286,7 +2286,7 @@
         },
         {
           "id": "G",
-          "creditor": "債権者G",
+          "creditor": "G",
           "kind": "GEN",
           "effectiveOn": "2026-08-10T10:00",
           "principal": 200000,
@@ -2318,7 +2318,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -2336,7 +2336,7 @@
       "claims": [
         {
           "id": "P1",
-          "creditor": "債権者P1",
+          "creditor": "P1",
           "kind": "PRV",
           "effectiveOn": "2026-04-01T10:00",
           "filedOn": "2026-03-25",
@@ -2346,7 +2346,7 @@
         },
         {
           "id": "P2",
-          "creditor": "債権者P2",
+          "creditor": "P2",
           "kind": "PRV",
           "effectiveOn": "2026-04-15T10:00",
           "filedOn": "2026-04-10",
@@ -2356,7 +2356,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-07-01T10:00",
           "filedOn": "2026-06-20",
@@ -2391,7 +2391,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -2408,7 +2408,7 @@
       "claims": [
         {
           "id": "P",
-          "creditor": "債権者C",
+          "creditor": "C",
           "kind": "PRV",
           "effectiveOn": "2026-04-01T10:00",
           "principal": 500000,
@@ -2416,7 +2416,7 @@
         },
         {
           "id": "C",
-          "creditor": "債権者C",
+          "creditor": "C",
           "kind": "GEN",
           "fromPrv": "P",
           "effectiveOn": "2026-07-01T10:00",
@@ -2426,7 +2426,7 @@
         },
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-07-10T10:00",
           "principal": 500000,
@@ -2434,7 +2434,7 @@
         },
         {
           "id": "Y",
-          "creditor": "債権者Y",
+          "creditor": "Y",
           "kind": "GEN",
           "effectiveOn": "2026-07-20T10:00",
           "principal": 500000,
@@ -2464,7 +2464,7 @@
       "meta": {
         "date": "2026-04-20",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -2575,7 +2575,7 @@
       "meta": {
         "date": "2026-11-19",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -2648,7 +2648,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -2667,7 +2667,7 @@
       "claims": [
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-07-01T10:00",
           "principal": 300000,
@@ -2675,7 +2675,7 @@
         },
         {
           "id": "Y",
-          "creditor": "債権者Y",
+          "creditor": "Y",
           "kind": "GEN",
           "effectiveOn": "2026-09-01T10:00",
           "principal": 300000,
@@ -2703,7 +2703,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -2714,7 +2714,7 @@
       "claims": [
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-07-01T10:00",
           "principal": 300000,
@@ -2722,7 +2722,7 @@
         },
         {
           "id": "Y",
-          "creditor": "債権者Y",
+          "creditor": "Y",
           "kind": "GEN",
           "effectiveOn": "2026-09-02T10:00",
           "principal": 300000,
@@ -2751,7 +2751,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "settings": {
         "stayedDeposit": "cutoff"
@@ -2772,7 +2772,7 @@
       "claims": [
         {
           "id": "X",
-          "creditor": "債権者X",
+          "creditor": "X",
           "kind": "GEN",
           "effectiveOn": "2026-07-01T10:00",
           "principal": 600000,
@@ -2781,7 +2781,7 @@
         },
         {
           "id": "Y",
-          "creditor": "債権者Y",
+          "creditor": "Y",
           "kind": "GEN",
           "effectiveOn": "2026-09-01T10:00",
           "principal": 600000,
@@ -2812,7 +2812,7 @@
       "meta": {
         "date": "2026-12-10",
         "court": "○○地方裁判所第○民事部",
-        "debtor": "債務者"
+        "debtor": "S"
       },
       "fund": {
         "kind": "general",
@@ -2828,7 +2828,7 @@
       "claims": [
         {
           "id": "T",
-          "creditor": "債権者T",
+          "creditor": "T",
           "kind": "GEN",
           "effectiveOn": "2026-07-01T10:00",
           "transferServedAt": "2026-07-01T10:00",
@@ -2837,7 +2837,7 @@
         },
         {
           "id": "Y",
-          "creditor": "債権者Y",
+          "creditor": "Y",
           "kind": "GEN",
           "effectiveOn": "2026-06-20T10:00",
           "principal": 600000,
