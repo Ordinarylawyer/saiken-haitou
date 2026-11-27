@@ -89,6 +89,15 @@ th.ht-stack { text-align: left; white-space: nowrap; }
 
 .in.bad { border-color: var(--danger); color: var(--danger); }
 
+/* 配当等事件の番号 */
+.cases { display: flex; flex-direction: column; gap: 4px; }
+.case-count { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.case-count .case-n { width: 4em; padding: 2px 6px; }
+.case-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 14px; }
+.case-row .case-k { display: inline-block; min-width: 1.6em; color: var(--sub); font-size: 12px; }
+.case-row .case-y { width: 4em; } .case-row .case-no { width: 7em; } .case-row .case-raw { width: 18em; }
+.case-row .in { padding: 3px 6px; }
+
 /* テンプレート */
 .card.tpl { border: 2px solid var(--primary); background: var(--primary-light); }
 .tpl-kinds { margin: 4px 0 6px; }
