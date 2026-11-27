@@ -86,6 +86,13 @@ th.ht-stack { text-align: left; white-space: nowrap; }
 .ht-r { text-align: right; }
 .ht-prov { margin: 0 0 4px; font-size: 13px; color: #a80000; }
 
+/* テンプレート */
+.card.tpl { border: 2px solid var(--primary); background: var(--primary-light); }
+.tpl-patterns { display: flex; flex-direction: column; gap: 0; margin: 4px 0; }
+.tpl-patterns .chk { margin: 3px 0; }
+.card.guide ol { margin: 4px 0 0; padding-left: 1.4em; font-size: 13px; }
+.card.guide li { margin: 3px 0; }
+
 /* 誤りの報告・改善の提案 */
 .report-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 10px 0 4px; }
 .report-row .hint { margin: 0; font-size: 12px; }
