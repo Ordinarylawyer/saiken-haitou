@@ -44,5 +44,31 @@ try {
   if (process.env.WRITE_XLSX) fs.writeFileSync(process.env.WRITE_XLSX, buf);
   console.log('  ok   Excel 出力');
 } catch (e) { fail++; console.log('  NG   Excel 出力'); console.log(e.message); }
-console.log(`excel: ${1 - fail} passed, ${fail} failed`);
+// 手続費用計算書（書式2-72）：内訳の合計が手続費用の額になり、計算書のシートができる
+try {
+  const r2 = HT.distribute({
+    meta: { date: '2026-12-10', caseNos: '令和8年（リ）第100号\n令和8年（リ）第101号\n令和8年（リ）第102号' },
+    fund: { kind: 'general', deposits: [{ id: 'd1', date: '2026-11-01', amount: 1000000, interest: 0 }] },
+    costStatement: true,
+    procedureCosts: [{ payee: 'X', amount: 999, items: [{ label: '配当期日呼出状送付費用', amount: 1450 }, { label: '支払委託書送付費用', amount: 550, note: '簡易書留' }] }],
+    claims: [{ id: 'X', creditor: 'X', kind: 'GEN', principal: 600000 }, { id: 'Y', creditor: 'Y', kind: 'GEN', principal: 600000 }],
+  });
+  const cost = r2.rows.find((x) => x.type === 'cost');
+  assert.equal(cost.paid, 2000);
+  assert.equal(cost.note, '別紙手続費用計算書のとおり');
+  assert.equal(r2.costStatements.length, 1);
+  assert.equal(HT.costStatementCase(r2.meta), '令和8年（リ）第100号　外2件');
+  const html2 = HT.renderTableHTML(r2);
+  assert.match(html2, /手続費用計算書/);
+  assert.match(html2, /配当事件番号：令和8年（リ）第100号　外2件/);
+  assert.match(html2, /簡易書留/);
+  const z3 = await JSZip.loadAsync(await (await HT.buildXlsx(r2, JSZip)).generateAsync({ type: 'nodebuffer' }));
+  const wb = await z3.file('xl/workbook.xml').async('string');
+  assert.match(wb, /name="手続費用計算書"/);
+  const cs = await z3.file('xl/worksheets/sheet2.xml').async('string');
+  assert.match(cs, /支払委託書送付費用/);
+  assert.match(cs, /<v>2000<\/v>/);
+  console.log('  ok   手続費用計算書');
+} catch (e) { fail++; console.log('  NG   手続費用計算書'); console.log(e.message); }
+console.log(`excel: ${2 - fail} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

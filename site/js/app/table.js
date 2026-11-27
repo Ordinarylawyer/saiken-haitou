@@ -145,7 +145,32 @@
   </tbody>
 </table>`;
     if (m.status) html += HT.renderStatusHTML(m);
+    for (const cs of result.costStatements || []) html += HT.renderCostStatementHTML(result, cs);
     return html;
+  };
+
+  // 手続費用計算書（立替者ごと）。書式は園部厚「書式 債権・その他財産権・動産等執行の実務〔全訂15版〕」447頁（民事法研究会）の書式2-72による
+  HT.COST_STATEMENT_MIN_ROWS = 20;
+  HT.costStatementCase = (meta) => {
+    const cases = String((meta || {}).caseNos || '').split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+    return cases.length ? `${cases[0]}${cases.length > 1 ? `　外${cases.length - 1}件` : ''}` : '';
+  };
+  HT.renderCostStatementHTML = function (result, cs) {
+    const rows = cs.items.slice();
+    while (rows.length < HT.COST_STATEMENT_MIN_ROWS) rows.push(null);
+    return `
+<div class="ht-cost">
+<div class="ht-cost-head"><h3 class="ht-cost-title">手続費用計算書</h3>
+  <div class="ht-cost-meta"><div>配当事件番号：${esc(HT.costStatementCase(result.meta))}</div><div>債　権　者：${esc(cs.payee)}</div></div></div>
+<table class="ht-sheet ht-cs">
+  <colgroup><col class="cs-no"><col class="cs-item"><col class="cs-amt"><col class="cs-note"></colgroup>
+  <tbody>
+    <tr class="ht-cshead"><th class="ht-c">番号</th><th class="ht-c">項　　　　目</th><th class="ht-c">金　額（円）</th><th class="ht-c">備　　　　考</th></tr>
+    ${rows.map((it, i) => `<tr class="ht-csrow"><td class="ht-c">${it ? i + 1 : ''}</td><td>${it ? esc(it.label) : ''}</td><td class="ht-n">${it ? yen(it.amount) : ''}</td><td>${it ? esc(it.note) : ''}</td></tr>`).join('')}
+    <tr class="ht-cstotal"><td></td><td class="ht-c">合　　　　計</td><td class="ht-n">${yen(cs.total)}</td><td></td></tr>
+  </tbody>
+</table>
+</div>`;
   };
 
   // 状況表の見出しに並べる供託の情報（書籍の配当加入等の状況表と同じ項目）

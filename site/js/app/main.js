@@ -27,6 +27,7 @@
     procedureCosts: [{ payee: '', amount: '', note: '配当期日呼出状及び支払委託書送付費用' }],
     claims: [blankClaim()],
     agreement: { enabled: false, amounts: {} },
+    costStatement: false,
     settings: Object.assign({}, HT.DEFAULT_SETTINGS),
     history: [],
   });
@@ -285,14 +286,31 @@ ${renderTemplate()}
 
 <section class="card">
   <h2>3 手続費用（共益費用となる執行費用）</h2>
-  ${s.procedureCosts.map((p, i) => `
+  ${s.procedureCosts.map((p, i) => {
+    const items = p.items || [];
+    const itemSum = items.reduce((t, it) => t + HT.int(it.amount), 0);
+    return `
+  <div class="sub-card cost-card">
   <div class="row">
     ${inp(`procedureCosts.${i}.payee`, '予納者')}
-    ${inp(`procedureCosts.${i}.amount`, '金額（円）', '', 'num')}
-    ${inp(`procedureCosts.${i}.note`, '内訳（備考）', 'wide2')}
+    ${itemSum ? `<label class="field"><span class="label">金額（円）＝内訳の合計</span><input class="in num" value="${HT.yen(itemSum)}" readonly></label>` : inp(`procedureCosts.${i}.amount`, '金額（円）', '', 'num')}
+    ${s.costStatement ? '' : inp(`procedureCosts.${i}.note`, '配当表の備考に書く内訳', 'wide2')}
     <button class="btn small danger" data-act="delCost" data-i="${i}">削除</button>
-  </div>`).join('')}
+  </div>
+  <details class="cost-items" ${items.length ? 'open' : ''}><summary>内訳（手続費用計算書の項目）${items.length ? `（${items.length}件）` : ''}</summary>
+    ${items.map((it, j) => `<div class="calc-line">
+      ${inp(`procedureCosts.${i}.items.${j}.label`, '項目')}
+      ${inp(`procedureCosts.${i}.items.${j}.amount`, '金額（円）', '', 'num')}
+      ${inp(`procedureCosts.${i}.items.${j}.note`, '備考')}
+      <button class="btn small danger" data-act="delCostItem" data-i="${i}" data-j="${j}">削除</button></div>`).join('')}
+    <button class="btn small" data-act="addCostItem" data-i="${i}">＋ 項目を追加</button>
+    ${items.length ? '' : `<button class="btn small" data-act="stdCostItems" data-i="${i}">呼出状送付・支払委託書送付の2項目を入れる</button>`}
+    <p class="hint">内訳に金額を入れると、その合計が手続費用の額になります。</p>
+  </details>
+  </div>`;
+  }).join('')}
   <button class="btn small" data-act="addCost">＋ 手続費用を追加</button>
+  <div class="row">${chk('costStatement', '手続費用計算書を作る（予納者ごとに作り、配当表の備考は「別紙手続費用計算書のとおり」とする）')}</div>
   <p class="hint">申立手数料・送達費用などは手続費用ではありません。各債権者の「費用」に入れてください（差押命令の請求債権に記載があるものに限ります）。</p>
 </section>
 
@@ -561,6 +579,7 @@ ${regions}`;
   // 操作
   // ---------------------------------------------------------------
   let timer = null;
+  let costTimer = null;
   const schedule = () => { clearTimeout(timer); timer = setTimeout(compute, 150); };
 
   document.addEventListener('input', (e) => {
@@ -583,7 +602,8 @@ ${regions}`;
       state.fund.deposits.forEach((d) => { if (state.fund.kind !== 'mixed') d.debtKind = prev; });
     }
     setPath(path, el.type === 'checkbox' ? el.checked : el.value);
-    if (el.dataset.rerender || path.endsWith('.taxSeizure') || path.endsWith('.mixed') || path.endsWith('.preservation') || path.endsWith('.stayed') || path === 'agreement.enabled') renderForm();
+    if (/^procedureCosts\.\d+\.items\.\d+\.amount$/.test(path)) { schedule(); clearTimeout(costTimer); costTimer = setTimeout(() => { const f = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.bind : null; renderForm(); if (f) { const e2 = document.querySelector(`[data-bind="${f}"]`); if (e2) { e2.focus(); const v = e2.value; e2.setSelectionRange && e2.setSelectionRange(v.length, v.length); } } }, 400); return; }
+    if (el.dataset.rerender || path === 'costStatement' || path.endsWith('.taxSeizure') || path.endsWith('.mixed') || path.endsWith('.preservation') || path.endsWith('.stayed') || path === 'agreement.enabled') renderForm();
     schedule();
   });
 
@@ -606,6 +626,9 @@ ${regions}`;
       case 'delDeposit': state.fund.deposits.splice(i, 1); break;
       case 'addCost': state.procedureCosts.push({ payee: '', amount: '', note: '' }); break;
       case 'delCost': state.procedureCosts.splice(i, 1); break;
+      case 'addCostItem': (state.procedureCosts[i].items = state.procedureCosts[i].items || []).push({ label: '', amount: '', note: '' }); break;
+      case 'delCostItem': state.procedureCosts[i].items.splice(Number(b.dataset.j), 1); break;
+      case 'stdCostItems': state.procedureCosts[i].items = [{ label: '配当期日呼出状送付費用', amount: '', note: '' }, { label: '支払委託書送付費用', amount: '', note: '' }]; break;
       case 'addClaim': state.claims.push(blankClaim()); break;
       case 'delClaim': state.claims.splice(i, 1); break;
       case 'upClaim': if (i > 0) { const [c] = state.claims.splice(i, 1); state.claims.splice(i - 1, 0, c); } break;

@@ -517,8 +517,15 @@
     const costRows = [];
 
     // 手続費用（1回の配当につき1回。最初の供託金から）
-    let procLeft = sum(input.procedureCosts || [], (x) => int(x.amount));
-    (input.procedureCosts || []).forEach((x) => costRows.push({ kind: 'PROC', payee: x.payee, amount: int(x.amount), note: x.note || '' }));
+    // 内訳（items）があれば、その合計を手続費用の額とする（手続費用計算書の項目）
+    const procCosts = (input.procedureCosts || []).map((x) => {
+      const items = (x.items || []).filter((it) => it && (String(it.label || '').trim() || int(it.amount)));
+      const amount = items.some((it) => int(it.amount)) ? sum(items, (it) => int(it.amount)) : int(x.amount);
+      return { payee: x.payee || '', amount, note: x.note || '', items: items.map((it) => ({ label: it.label || '', amount: int(it.amount), note: it.note || '' })) };
+    });
+    const costStatement = !!input.costStatement;
+    let procLeft = sum(procCosts, (x) => x.amount);
+    procCosts.forEach((x) => costRows.push({ kind: 'PROC', payee: x.payee, amount: x.amount, note: costStatement ? '別紙手続費用計算書のとおり' : x.note }));
 
     // 供託ごとの配当加入：差押え等の効力発生が供託の時までのもの（民執法165条1号）
     const sortedRaw = (fund.deposits || []).slice().sort((a, b) => (a.date || '').localeCompare(b.date || ''));
@@ -876,6 +883,9 @@
       caption: transferEffective ? '（参考：転付命令が効力を生じるため、配当に至らない）' : provisional ? '（参考計算：混合供託で、還付請求権の帰属の証明前）' : '',
       fund: { sale: saleTotal, deposit: depositTotal, interest: interestTotal, total: fundTotal },
       rows, regions: regionLog, warnings, next,
+      // 手続費用計算書（作るときだけ。立替者ごと）
+      costStatements: costStatement ? procCosts.filter((x) => x.amount).map((x) => ({ payee: x.payee, total: x.amount,
+        items: x.items.length ? x.items : [{ label: x.note || '配当期日呼出状及び支払委託書送付費用', amount: x.amount, note: '' }] })) : [],
       paid: Object.fromEntries(all.map((c) => [c.id, paid.get(c.id)])), remaining: Object.fromEntries(all.map((c) => [c.id, rem.get(c.id)])),
     };
   };
@@ -914,7 +924,8 @@
     const deps0 = s.fund.deposits || [];
     const lastDep = (s.fund.kind === 'mixed' ? deps0.filter((d) => d.debtKind === 'wage') : deps0).slice(-1)[0] || deps0.slice(-1)[0] || {};
     s.fund.deposits = [{ thirdParty: lastDep.thirdParty || '', office: lastDep.office || '', debtKind: lastDep.debtKind || undefined, wage: lastDep.wage ? { dependents: lastDep.wage.dependents || '' } : undefined }];
-    s.procedureCosts = (s.procedureCosts || []).map((p) => ({ payee: p.payee || '', amount: '', note: p.note || '' }));
+    s.procedureCosts = (s.procedureCosts || []).map((p) => ({ payee: p.payee || '', amount: '', note: p.note || '',
+      items: (p.items || []).map((it) => ({ label: it.label || '', amount: '', note: it.note || '' })) }));
     s.agreement = { enabled: false, amounts: {} };
     const dropped = [];
     const mergedPrv = new Set();
