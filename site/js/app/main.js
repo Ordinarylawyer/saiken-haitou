@@ -10,7 +10,7 @@
   // ---------------------------------------------------------------
   let seq = 0;
   const newId = (p) => `${p}${Date.now().toString(36)}${(seq++).toString(36)}`;
-  const blankDeposit = () => ({ id: newId('d'), date: '', at: '', caseNo: '', depositNo: '', office: '', thirdParty: '', mixed: false, mixedResolved: false, preservation: false, convertedAt: '', releaseAmount: '', amount: '', interest: '', depositCost: '', net: '', capT: '',
+  const blankDeposit = () => ({ id: newId('d'), debtKind: 'general', date: '', at: '', caseNo: '', depositNo: '', office: '', thirdParty: '', mixed: false, mixedResolved: false, preservation: false, convertedAt: '', releaseAmount: '', amount: '', interest: '', depositCost: '', net: '', capT: '',
     wage: { gross: '', incomeTax: '', residentTax: '', socialInsurance: '', dependents: '' } });
   const blankClaim = () => ({ id: newId('c'), creditor: '', caseNo: '', filedOn: '', effectiveOn: '', kind: 'GEN', label: '',
     gppClass: 2, secType: 'MTG', perfectedOn: '', maxAmount: '', taxPriority: false, legalDue: '', demandAt: '', secured: false,
@@ -47,9 +47,10 @@
   document.addEventListener('change', (e) => {
     const id = e.target.id || '';
     if (!id.startsWith('tpl-')) return;
-    if (id === 'tpl-cases') tpl.cases = e.target.value;
-    else if (id === 'tpl-kind') tpl.kind = e.target.value;
-    else if (id.startsWith('tpl-pattern-')) { tpl.pattern = e.target.value; tpl.kind = tpl.pattern === 'gen' ? 'general' : 'wage'; renderForm(); }
+    if (id === 'tpl-nGeneral') tpl.nGeneral = e.target.value;
+    else if (id === 'tpl-nWage') tpl.nWage = e.target.value;
+    else if (id === 'tpl-general' || id === 'tpl-wage') { tpl[id.slice(4)] = e.target.checked; renderForm(); }
+    else if (id.startsWith('tpl-pattern-')) { tpl.pattern = e.target.value; if (tpl.pattern !== 'gen') tpl.wage = true; renderForm(); }
     else if (id.startsWith('tpl-lien-')) tpl.lien = e.target.value === '1';
   });
   // 印刷の直前に、いま表示している表をページに組む（Ctrl+P で印刷したときも同じ）
@@ -88,7 +89,7 @@
     ['sup', '一般債権＋養育費'],
     ['supTax', '一般債権＋養育費＋公債権（租税・公課）'],
   ];
-  const tpl = { cases: '1', pattern: 'gen', lien: true, kind: 'general' };
+  const tpl = { pattern: 'gen', lien: true, general: true, wage: false, nGeneral: '1', nWage: '1' };
   let tplOpen = null; // null：入力が空のときだけ出す。true／false：ボタンで開閉
   let guide = null;   // テンプレートを当てた後の「次にすること」
   const isBlank = () => !state.meta.date && !(state.history || []).length
@@ -105,9 +106,10 @@
     return `<section class="card tpl">
   <div class="row between"><h2>テンプレートから始める</h2>${tplOpen ? '<button class="btn small" data-act="closeTpl">閉じる</button>' : ''}</div>
   <p class="hint">配当事件の数と債権者の構成を選ぶと、典型的な形の入力欄を用意します。あとは金額・日付・名前を入れていくだけです。入力欄はあとから追加・削除できます。</p>
-  <div class="grid">
-    <label class="field"><span class="label">配当事件（リ事件）の数＝供託金の数</span><input class="in num" id="tpl-cases" inputmode="numeric" value="${esc(tpl.cases)}"></label>
-    <label class="field"><span class="label">差押債権の種類</span><select class="in" id="tpl-kind">${[['general', '預金・売掛金など'], ['wage', '給料等（民執法152条）']].map(([v, t]) => `<option value="${v}" ${tpl.kind === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+  <div class="tpl-kinds">
+    <span class="label">差押債権の種類（両方なら両方に印）と、それぞれの配当事件（リ事件）の数＝供託金の数</span>
+    <div class="tpl-kind"><label class="chk"><input type="checkbox" id="tpl-general" ${tpl.general ? 'checked' : ''}> 預金・売掛金など</label>${tpl.general ? `<label class="chk">事件の数 <input class="in num tpl-n" id="tpl-nGeneral" inputmode="numeric" value="${esc(tpl.nGeneral)}"></label>` : ''}</div>
+    <div class="tpl-kind"><label class="chk"><input type="checkbox" id="tpl-wage" ${tpl.wage ? 'checked' : ''}> 給料等（民執法152条）</label>${tpl.wage ? `<label class="chk">事件の数 <input class="in num tpl-n" id="tpl-nWage" inputmode="numeric" value="${esc(tpl.nWage)}"></label>` : ''}</div>
   </div>
   <div class="tpl-patterns">${TPL_PATTERNS.map(([v, t]) => `<label class="chk"><input type="radio" name="tpl-pattern" id="tpl-pattern-${v}" value="${v}" ${tpl.pattern === v ? 'checked' : ''}> ${t}</label>`).join('')}</div>
   ${sup ? `<div class="tpl-patterns"><label class="chk"><input type="radio" name="tpl-lien" id="tpl-lien-yes" value="1" ${tpl.lien ? 'checked' : ''}> 養育費に子の監護費用の先取特権あり（担保権の実行又は文書による配当要求）</label>
@@ -116,19 +118,22 @@
 </section>`;
   }
   function applyTemplate() {
-    const n = Math.min(Math.max(HT.int(tpl.cases) || 1, 1), 20);
+    const cnt = (v) => Math.min(Math.max(HT.int(v) || 1, 1), 20);
+    const nG = tpl.general ? cnt(tpl.nGeneral) : 0, nW = tpl.wage ? cnt(tpl.nWage) : 0, n = nG + nW;
+    if (!n) { alert('差押債権の種類（預金・売掛金など／給料等）を選んでください。'); return false; }
     if (!isBlank() && !confirm('いまの入力を消して、テンプレートの形に入れ替えます。よろしいですか。')) return false;
     const sup = tpl.pattern !== 'gen', tax = tpl.pattern === 'supTax';
     state = blankState();
-    state.fund.kind = tpl.kind;
-    state.fund.deposits = Array.from({ length: n }, () => blankDeposit());
+    state.fund.kind = nG && nW ? 'mixed' : nW ? 'wage' : 'general';
+    state.fund.deposits = [...Array.from({ length: nG }, () => Object.assign(blankDeposit(), { debtKind: 'general' })),
+      ...Array.from({ length: nW }, () => Object.assign(blankDeposit(), { debtKind: 'wage' }))];
     const gen = (label) => Object.assign(blankClaim(), { kind: 'GEN', label });
     state.claims = tpl.pattern === 'gen' ? [gen('貸金'), gen('売買代金')] : [gen('貸金')];
     if (tax) state.claims.push(Object.assign(blankClaim(), { kind: 'TAX', label: '（税目）・交付要求' }));
     if (sup) state._sup = { asserted: tpl.lien };
     const steps = [
       '「1 事件」：配当期日、裁判所・書記官、債務者、事件番号を入れます。',
-      `「2 配当原資」：供託金${n > 1 ? `1〜${n}` : ''}ごとに、供託日（日時）・供託金・配当事件の番号（リ）を入れます。${tpl.kind === 'wage' ? '給料等は手取額も入れます。' : ''}`,
+      `「2 配当原資」：供託金${n > 1 ? `1〜${n}` : ''}ごとに、供託日（日時）・供託金・配当事件の番号（リ）を入れます。${nG && nW ? `供託金1${nG > 1 ? `〜${nG}` : ''}は預金・売掛金など、供託金${nG + 1}${nW > 1 ? `〜${n}` : ''}は給料等として用意しました。` : ''}${nW ? '給料等は手取額も入れます。' : ''}`,
       '「4 債権者」：債権者ごとに、名前・事件番号・差押え等の効力発生の日時・請求債権の額を入れます。',
     ];
     if (sup) steps.push(`「5 扶養義務等債権」：養育費の債権者・月額・子の数・未払の支払期を入れて「債権者欄に加える」を押します。${tpl.lien ? '先取特権の部分（月8万円×子の数まで）とそれ以外の2行に分けて加えます。' : '先取特権の部分は作らず、1行で加えます。'}加えた行に事件番号・効力発生の日時を入れます。`);
@@ -144,7 +149,9 @@
   // ---------------------------------------------------------------
   function renderForm() {
     const s = state;
-    const wage = s.fund.kind === 'wage';
+    const mixed = s.fund.kind === 'mixed';
+    const wageDep = (d) => HT.isWageDeposit(d, s.fund);
+    const wage = s.fund.deposits.some(wageDep); // 給料等の供託金が1つでもあるか
     $('#form').innerHTML = `
 ${renderTemplate()}
 <section class="card">
@@ -165,7 +172,7 @@ ${renderTemplate()}
 <section class="card">
   <h2>2 配当原資</h2>
   <div class="grid">
-    ${sel('fund.kind', '差押債権の種類', [['general', '預金・売掛金など（差押禁止の範囲の違いなし）'], ['wage', '給料等（民執法152条）']], true)}
+    ${sel('fund.kind', '差押債権の種類', [['general', '預金・売掛金など（差押禁止の範囲の違いなし）'], ['wage', '給料等（民執法152条）'], ['mixed', '預金・売掛金などと給料等の両方（供託金ごとに選ぶ）']], true)}
     ${inp('fund.cutoffAt', '配当要求の終期（供託の日時）', '', 'datetime-local')}
     ${inp('fund.saleProceeds', '売得金（円・売却命令のとき）', '', 'num')}
     ${inp('fund.saleAt', '売得金：執行官が交付を受けた日時（終期）', '', 'datetime-local')}
@@ -173,13 +180,14 @@ ${renderTemplate()}
   ${s.fund.deposits.map((d, i) => `
   <div class="sub-card">
     <div class="row between"><strong>供託金 ${i + 1}</strong>${s.fund.deposits.length > 1 ? `<button class="btn small danger" data-act="delDeposit" data-i="${i}">削除</button>` : ''}</div>
+    ${mixed ? `<div class="grid">${sel(`fund.deposits.${i}.debtKind`, 'この供託金の差押債権', [['general', '預金・売掛金など'], ['wage', '給料等（民執法152条）']], true)}</div>` : ''}
     <div class="grid">
       ${inp(`fund.deposits.${i}.date`, '供託日（受入日）', '', 'date')}
       ${inp(`fund.deposits.${i}.at`, '供託の日時（同じ日に差押え等があるとき）', '', 'datetime-local')}
       ${inp(`fund.deposits.${i}.amount`, '供託金（円）', '', 'num')}
       ${inp(`fund.deposits.${i}.interest`, '供託利息（円・空欄なら自動計算）', '', 'num')}
       ${inp(`fund.deposits.${i}.depositCost`, '第三債務者の供託費用（円）', '', 'num')}
-      ${wage ? inp(`fund.deposits.${i}.net`, '手取額（給料等−所得税・住民税・社会保険料）', '', 'num') : ''}
+      ${wageDep(d) ? inp(`fund.deposits.${i}.net`, '手取額（給料等−所得税・住民税・社会保険料）', '', 'num') : ''}
       ${inp(`fund.deposits.${i}.caseNo`, '配当事件の番号（リ）', '', 'text', 'placeholder="令和○年（リ）第○号"')}
       ${inp(`fund.deposits.${i}.depositNo`, '供託番号')}
       ${inp(`fund.deposits.${i}.office`, '供託所')}
@@ -203,7 +211,7 @@ ${renderTemplate()}
       ${inp(`fund.deposits.${i}.releaseAmount`, '仮差押解放金の額（円。仮差押えが1件のとき。複数なら各仮差押えの欄に入れる）', 'wide2', 'num')}
     </div>
     <p class="hint">この供託だけでは配当要求の終期は来ません。仮差押えの範囲（給料等は手取額の1/4）で仮差押解放金の額までの部分は解放金とみなされ、最初の差押命令が供託所に送達された時に執行供託に変わって、その時が終期になります（複数の供託にわたるときは古い供託から解放金の額まで充てます）。それを超える部分は弁済供託に当たり、仮差押債権者は加入せず、還付請求権に対する差押え等が競合した時が終期です。競合がなければ配当の対象外として示します。「供託の日時」と「配当要求の終期」の欄は使わず、供託日は供託利息の計算に使います。手取額を入れると1/4を超える部分を分けます。仮差押えが複数あるときは、解放金とみなす額を各仮差押えの解放金の額の合計までとし、その範囲を全員で按分します（各仮差押債権者は自分の解放金の額まで）。</p>` : ''}
-    ${wage && s.claims.some((c) => HT.isPublic(c) && c.taxSeizure) ? `
+    ${wageDep(d) && s.claims.some((c) => HT.isPublic(c) && c.taxSeizure) ? `
     <details class="tax76"><summary>国税徴収法76条の差押可能額（滞納処分の差押えがあるとき）</summary>
       <div class="grid">
         ${inp(`fund.deposits.${i}.wage.gross`, '給料等の額', '', 'num')}
@@ -398,7 +406,7 @@ ${renderTemplate()}
     const depLabel = Object.fromEntries(DEP_TYPES);
     const lines = [
       `書式：${r.type}${viewingAdd ? '（追加配当表）' : viewing != null ? `（第${viewing + 1}回の表示）` : ''}`,
-      `差押債権：${s.fund.kind === 'wage' ? '給料等' : '預金・売掛金など'}`,
+      `差押債権：${s.fund.kind === 'wage' ? '給料等' : s.fund.kind === 'mixed' ? `預金・売掛金などと給料等（${s.fund.deposits.map((d) => (d.debtKind === 'wage' ? '給料等' : '預金等')).join('／')}）` : '預金・売掛金など'}`,
       `供託金：${s.fund.deposits.length}件（${s.fund.deposits.map((d) => depLabel[depType(d)] || '').join('／')}）`,
       `債権者：${s.claims.length}件（${s.claims.map((c, i) => `${i + 1} ${HT.KIND_LABEL[c.kind] || c.kind}${c.fromPrv ? '・本執行移行' : ''}${c.stayed ? '・執行停止' : ''}${c.transferServedAt ? '・転付命令' : ''}`).join('、')}）`,
     ];
@@ -448,7 +456,7 @@ ${renderTemplate()}
   function renderResult() {
     const r = lastResult;
     const warn = r.warnings.length ? `<div class="hint warn"><strong>確認してください</strong><ul>${r.warnings.map((w) => `<li>${esc(w)}</li>`).join('')}</ul></div>` : '';
-    const regions = r.regions.length > 1 || state.fund.kind === 'wage' ? `
+    const regions = r.regions.length > 1 || state.fund.deposits.some((d) => HT.isWageDeposit(d, state.fund)) ? `
 <details class="regions"><summary>部分（区画）ごとの配分</summary>
 <table class="mini"><tr><th>供託金</th><th>範囲（円）</th><th>原資（円）</th><th>参加者と配当（円）</th><th>残り（円）</th></tr>
 ${r.regions.map((g) => `<tr><td>${g.deposit === 'sale' ? '売得金' : (g.deposits || []).map((x) => esc(`供託金${x.index + 1}${x.date ? '（' + HT.wareki(x.date) + '）' : ''}${x.part ? 'の' + x.part : ''}`)).join('<br>')}</td><td>${HT.yen(g.lower)}〜${HT.yen(g.upper)}</td><td class="n">${HT.yen(g.amount)}</td>
@@ -514,6 +522,11 @@ ${regions}`;
       state.additional.decisions[id][key] = el.value;
       if (el.dataset.rerender) renderResult();
       return;
+    }
+    if (path === 'fund.kind' && el.value === 'mixed') {
+      // 「両方」に切り替えたときは、それまでの種類を各供託金の初期値にする
+      const prev = state.fund.kind === 'wage' ? 'wage' : 'general';
+      state.fund.deposits.forEach((d) => { if (state.fund.kind !== 'mixed') d.debtKind = prev; });
     }
     setPath(path, el.type === 'checkbox' ? el.checked : el.value);
     if (el.dataset.rerender || path.endsWith('.taxSeizure') || path.endsWith('.mixed') || path.endsWith('.preservation') || path.endsWith('.stayed') || path === 'agreement.enabled') renderForm();

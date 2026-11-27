@@ -774,5 +774,26 @@ t('一般先取特権の種類を「子の監護の費用」とした入力は�
   assert.ok(a.warnings.some((w) => /子の監護の費用の先取特権は、種別/.test(w)));
 });
 
+t('預金等と給料等の両方：供託金ごとに差押えの範囲を分ける', () => {
+  const claims = [
+    { id: 'X', creditor: 'X', kind: 'GEN', effectiveOn: '2026-05-01T10:00', principal: 1000000 },
+    { id: 'W', creditor: 'W', kind: 'SUP2', effectiveOn: '2026-05-01T10:00', principal: 300000 },
+  ];
+  const r = HT.distribute({
+    meta: { date: '2026-12-10' },
+    fund: { kind: 'mixed', deposits: [
+      { id: 'd1', debtKind: 'general', date: '2026-06-01', amount: 200000, interest: 0 },
+      { id: 'd2', debtKind: 'wage', date: '2026-07-01', amount: 100000, interest: 0, net: 200000 },
+    ] },
+    claims,
+  });
+  // 預金：全額を按分（X 153,846、W 46,154）。給料：1/4〜1/2の5万円はWだけ、1/4の5万円を残債権で按分（X 40,293、W 9,707）
+  assert.equal(JSON.stringify(r.paid), JSON.stringify({ X: 194139, W: 105861 }));
+  // 預金だけ・給料だけなら、従来の kind と同じ結果
+  const only = (kind, debtKind, extra) => ({ meta: { date: '2026-12-10' }, fund: { kind, deposits: [Object.assign({ id: 'd', debtKind, date: '2026-06-01', amount: 100000, interest: 0 }, extra)] }, claims });
+  assert.equal(JSON.stringify(HT.distribute(only('mixed', 'general')).paid), JSON.stringify(HT.distribute(only('general')).paid));
+  assert.equal(JSON.stringify(HT.distribute(only('mixed', 'wage', { net: 200000 })).paid), JSON.stringify(HT.distribute(only('wage', undefined, { net: 200000 })).paid));
+});
+
 console.log(`engine: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
