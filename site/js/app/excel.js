@@ -199,10 +199,32 @@ ${opt.footer ? `<headerFooter><oddFooter>${x(opt.footer)}</oddFooter></headerFoo
     return sh.xml([22, 9, ...Array(totalCol - 2).fill(13), 14]);
   };
 
+  // 手続費用計算書のシート（書式2-72。番号・項目・金額・備考）
+  HT.buildCostStatementXml = function (result, cs) {
+    const sh = Sheet();
+    const { put, box, heights } = sh;
+    box(1, 0, 1, 1, '手続費用計算書', S.title);
+    put(1, 3, `配当事件番号：${HT.costStatementCase(result.meta)}`, S.plain);
+    put(2, 3, `債　権　者：${cs.payee}`, S.plain);
+    heights[1] = 24;
+    put(3, 0, '番号', S.boxC); put(3, 1, '項　　　　目', S.boxC); put(3, 2, '金　額（円）', S.boxC); put(3, 3, '備　　　　考', S.boxC);
+    const rows = cs.items.slice();
+    while (rows.length < HT.COST_STATEMENT_MIN_ROWS) rows.push(null);
+    let r = 4;
+    rows.forEach((it, i) => {
+      put(r, 0, it ? i + 1 : '', S.boxC, !!it); put(r, 1, it ? it.label : '', S.box); put(r, 2, it ? it.amount : '', S.numBox, !!it); put(r, 3, it ? it.note : '', S.box);
+      heights[r] = 20; r++;
+    });
+    put(r, 0, '', S.box); put(r, 1, '合　　　　計', S.boxC); put(r, 2, cs.total, S.numBox, true); put(r, 3, '', S.box);
+    heights[r] = 20;
+    return sh.xml([7, 46, 16, 40]);
+  };
+
   HT.buildXlsx = async function (result, JSZip) {
     const m = HT.tableModel(result);
     const sheets = [{ name: m.title, xml: HT.buildSheetXml(m) }];
     if (m.status) sheets.push({ name: '配当加入等の状況表', xml: HT.buildStatusXml(m) });
+    (result.costStatements || []).forEach((cs, i, all) => sheets.push({ name: all.length > 1 ? `手続費用計算書${i + 1}` : '手続費用計算書', xml: HT.buildCostStatementXml(result, cs) }));
     const zip = new JSZip();
     zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">

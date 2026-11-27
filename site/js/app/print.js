@@ -49,6 +49,17 @@
         sections.push({ table: tbl, lead: [st.querySelector('h3')].filter(Boolean), top: [], head, units, tail: [...st.querySelectorAll(':scope > p')], newPage: true });
       }
 
+      // 手続費用計算書（立替者ごとに新しいページから）
+      meas.querySelectorAll(':scope > .ht-cost').forEach((cs) => {
+        const tbl = cs.querySelector('table');
+        const rows = [...tbl.rows];
+        const units = [];
+        rows.filter((r) => !r.classList.contains('ht-cshead')).forEach((r) => {
+          if (r.classList.contains('ht-cstotal') && units.length) units[units.length - 1].push(r); else units.push([r]);
+        });
+        sections.push({ table: tbl, lead: [cs.querySelector('.ht-cost-head')], top: [], head: rows.filter((r) => r.classList.contains('ht-cshead')), units, tail: [], newPage: true });
+      });
+
       // ページに割り付ける
       const pages = [];
       let cur = null;
