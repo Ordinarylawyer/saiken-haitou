@@ -291,7 +291,10 @@ ${renderTemplate()}
   <div class="grid">
     ${inp('meta.date', '配当期日（弁済金交付日）', '', 'date')}
     ${inp('meta.court', '裁判所・部', 'wide2', 'text', 'placeholder="○○地方裁判所第○民事部"')}
-    ${inp('meta.signer', `作成者の氏名<span id="signer-role">${esc(signerRole())}</span>`, '', 'text', 'title="計算の結果が配当表なら「裁判所書記官」、弁済金交付計算書なら「裁判官」の肩書で表示します"')}
+    <div class="field signer-field">
+      <label class="label" for="signer-in">作成者の氏名（配当の場合は書記官、弁済金交付の場合は裁判官）</label>
+      <div class="signer-row"><input class="in" id="signer-in" type="text" data-bind="meta.signer" value="${esc(val('meta.signer'))}"><span class="signer-role" id="signer-role">${esc(signerRole())}</span></div>
+    </div>
     ${inp('meta.debtor', '債務者')}
     ${sel('meta.debtorLabel', '債務者欄の表示', [['債　務　者', '債務者'], ['債務者兼所有者', '債務者兼所有者（担保権の実行）']])}
   </div>
@@ -589,8 +592,8 @@ ${renderTemplate()}
   // 作成者の肩書：配当表は裁判所書記官（民執法85条5項）、弁済金交付計算書は執行裁判所＝裁判官（同法84条2項）。
   // いずれも同法166条2項で債権執行に準用。計算の結果で決まる
   function signerRole() {
-    if (!lastResult) return '（裁判所書記官／裁判官）';
-    return lastResult.type === '弁済金交付計算書' ? '（裁判官：弁済金交付計算書）' : '（裁判所書記官：配当表）';
+    if (!lastResult) return '';
+    return lastResult.type === '弁済金交付計算書' ? '→ いまの結果：弁済金交付計算書（「裁判官」と表示）' : '→ いまの結果：配当表（「裁判所書記官」と表示）';
   }
   function updateSignerRole() { const el = document.getElementById('signer-role'); if (el) el.textContent = signerRole(); }
   function compute() {
