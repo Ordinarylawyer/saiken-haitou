@@ -631,6 +631,7 @@ ${printPanel ? `<div class="sub-card print-opts noprint">
   <button class="btn small" data-act="saveAnon" title="債権者名・事件番号・第三債務者名・供託番号などを消した入力を保存します。報告に添えるときに使います">名前等を消した JSON を保存</button>
   <a class="btn small" target="_blank" rel="noopener noreferrer" href="${esc(issueUrl('proposal.yml', '[提案] '))}">改善を提案</a>
   <span class="hint">GitHub のアカウントが要ります。事件の当事者名など、事件を特定できる情報は書かないでください。</span>
+  <span class="hint anon-note">「名前等を消した JSON を保存」は、GitHub での報告用に匿名化するためのもので、通常の業務では使いません。事件で使用するための名前入りの JSON は、画面上部の「JSON に保存」ボタンから保存してください。</span>
 </div>
 ${addPanel}
 ${regions}`;

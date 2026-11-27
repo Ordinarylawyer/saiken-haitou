@@ -133,7 +133,7 @@ th.ht-stack { text-align: left; white-space: nowrap; }
 
 /* 誤りの報告・改善の提案 */
 .report-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 10px 0 4px; }
-.report-row .hint { margin: 0; font-size: 12px; }
+.report-row .hint { margin: 0; font-size: 12px; flex-basis: 100%; }
 
 /* 印刷の選択 */
 .print-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; }
