@@ -227,18 +227,20 @@
   // ---------------------------------------------------------------
   // 「1 事件」に入れた配当等事件の番号（1行に1件）
   const caseList = () => String(state.meta.caseNos || '').split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
-  // 配当等事件の番号は「令和○年（リ）第○号」の年と号を別々に入れ、改行の打ち方などによる誤りを防ぐ。
+  // 配当等事件の番号は「令和○年（リ）第○号」の元号（令和・平成・昭和）・年・号を別々に入れ、改行の打ち方などによる誤りを防ぐ。
   // 入力は meta.cases（[{year, no}]）に持ち、計算・配当表に使う meta.caseNos（1行に1件）はそこから作る
-  const CASE_RE = /^令和\s*(元|\d+)\s*年\s*[（(]\s*リ\s*[)）]\s*第\s*(\d+)\s*号$/;
+  const ERAS = ['令和', '平成', '昭和']; // 古いリ事件もあるので選べるようにする（初期値は令和）
+  const CASE_RE = /^(令和|平成|昭和)\s*(元|\d+)\s*年\s*[（(]\s*リ\s*[)）]\s*第\s*(\d+)\s*号$/;
   function parseCases(text) {
     const lines = String(text || '').split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
     if (!lines.length) return [{ year: '', no: '' }];
-    return lines.map((l) => { const m = l.normalize('NFKC').match(CASE_RE); return m ? { year: m[1] === '元' ? '1' : m[1], no: m[2] } : { raw: l }; });
+    return lines.map((l) => { const m = l.normalize('NFKC').match(CASE_RE); return m ? { era: m[1], year: m[2] === '元' ? '1' : m[2], no: m[3] } : { raw: l }; });
   }
   const caseText = (c) => {
     if (c.raw != null) return String(c.raw).trim();
     const y = String(c.year || '').normalize('NFKC').trim(), n = String(c.no || '').normalize('NFKC').trim();
-    return y && n ? `令和${y === '1' || y === '元' ? '元' : y}年（リ）第${n}号` : '';
+    const era = ERAS.includes(c.era) ? c.era : '令和';
+    return y && n ? `${era}${y === '1' || y === '元' ? '元' : y}年（リ）第${n}号` : '';
   };
   function syncCaseNos() { state.meta.caseNos = (state.meta.cases || []).map(caseText).filter(Boolean).join('\n'); }
   function renderCases() {
@@ -248,8 +250,8 @@
       <button class="btn small" data-act="setCaseCount">欄を作る</button><span class="hint">併合した事件も含めた数です。同じ数だけ「2 配当原資」の供託金の欄を用意し、順に事件番号を当てます。</span></div>
     ${cases.map((c, k) => c.raw != null ? `<div class="case-row bad-row"><span class="case-k">${k + 1}</span><input class="in case-raw" data-case="${k}" data-part="raw" value="${esc(c.raw)}">
       <button class="btn small" data-act="fixCase" data-i="${k}">年と号で入れ直す</button>
-      <span class="hint warn">形式が「令和○年（リ）第○号」ではありません。${/[（(][ルナヨ][)）]/.test(c.raw) ? '差押え等の事件の番号（ル・ナ・ヨ）は、「4 債権者」の各債権者の欄に入れます。' : ''}</span></div>`
-      : `<div class="case-row"><span class="case-k">${k + 1}</span>令和 <input class="in num case-y" data-case="${k}" data-part="year" inputmode="numeric" value="${esc(c.year)}" placeholder="8"> 年（リ）第 <input class="in num case-no" data-case="${k}" data-part="no" inputmode="numeric" value="${esc(c.no)}" placeholder="123"> 号</div>`).join('')}
+      <span class="hint warn">形式が「令和（平成・昭和）○年（リ）第○号」ではありません。${/[（(][ルナヨ][)）]/.test(c.raw) ? '差押え等の事件の番号（ル・ナ・ヨ）は、「4 債権者」の各債権者の欄に入れます。' : ''}</span></div>`
+      : `<div class="case-row"><span class="case-k">${k + 1}</span><select class="in case-era" data-case="${k}" data-part="era">${ERAS.map((e) => `<option ${(c.era || '令和') === e ? 'selected' : ''}>${e}</option>`).join('')}</select> <input class="in num case-y" data-case="${k}" data-part="year" inputmode="numeric" value="${esc(c.year)}" placeholder="8"> 年（リ）第 <input class="in num case-no" data-case="${k}" data-part="no" inputmode="numeric" value="${esc(c.no)}" placeholder="123"> 号</div>`).join('')}
   </div>`;
   }
   // 供託金ごとの配当等事件の番号は、誤入力を防ぐため「1 事件」に入れた番号から選ぶ
