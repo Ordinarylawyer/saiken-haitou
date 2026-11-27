@@ -38,7 +38,14 @@
   function adoptInput(s) {
     state = Object.assign(blankState(), s);
     state.meta = Object.assign(blankState().meta, s.meta || {});
-    if (!s.meta || !Array.isArray(s.meta.cases)) state.meta.cases = parseCases(state.meta.caseNos);
+    if (!s.meta || !Array.isArray(s.meta.cases)) {
+      // 事件番号の欄の形（meta.cases）がない入力（以前の JSON・設例）：事件番号の行から作る。
+      // 行がなければ供託金に入っている番号から作り、それもなければ供託金の数だけ空の欄を用意する（テンプレートと同じ）
+      const deps = state.fund.deposits || [];
+      const fromDeps = [...new Set(deps.map((d) => String(d.caseNo || '').trim()).filter(Boolean))].join('\n');
+      state.meta.cases = parseCases(state.meta.caseNos || fromDeps);
+      if (!String(state.meta.caseNos || fromDeps).trim() && deps.length > 1) state.meta.cases = deps.map(() => ({ year: '', no: '' }));
+    }
     syncCaseNos();
     state.settings = Object.assign({}, HT.DEFAULT_SETTINGS, s.settings || {});
     state.agreement = Object.assign({ enabled: false, amounts: {} }, s.agreement || {});
