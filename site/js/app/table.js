@@ -39,8 +39,10 @@
       title: isPay ? '弁済金交付計算書' : (meta.title || '配当表'),
       date: HT.wareki(meta.date),
       court: meta.court || '',
+      // 配当表は裁判所書記官が作成し（民執法85条5項）、弁済金交付計算書は執行裁判所が作成する（同法84条2項）。
+      // 名前は 1 欄（meta.signer）。以前の入力の clerk / judge も読む
       signerTitle: isPay ? '裁判官' : '裁判所書記官',
-      signer: isPay ? (meta.judge || '') : (meta.clerk || ''),
+      signer: meta.signer || (isPay ? meta.judge : meta.clerk) || '',
       debtor: meta.debtor || '',
       debtorLabel: meta.debtorLabel || '債　務　者',
       caseNos: String(meta.caseNos || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean),

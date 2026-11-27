@@ -22,7 +22,7 @@
   const blankCalc = (c) => ({ target: 'damages', base: c && c.principal ? String(c.principal) : '', rate: '', from: '', to: '', basis: '365' });
   const blankState = () => ({
     version: 1,
-    meta: { date: '', court: '', clerk: '', judge: '', debtor: '', debtorLabel: '債　務　者', caseNos: '', cases: [{ year: '', no: '' }], footnote: '' },
+    meta: { date: '', court: '', signer: '', debtor: '', debtorLabel: '債　務　者', caseNos: '', cases: [{ year: '', no: '' }], footnote: '' },
     fund: { kind: 'general', cutoffAt: '', deposits: [blankDeposit()] },
     procedureCosts: [{ payee: '', amount: '', note: '配当期日呼出状及び支払委託書送付費用' }],
     claims: [blankClaim()],
@@ -54,6 +54,15 @@
     if (!s.procedureCosts) state.procedureCosts = [];
     state.claims = (state.claims || []).map((c) => fixKind(Object.assign(blankClaim(), c)));
     state.history = state.history || [];
+    // 以前の JSON は裁判所書記官（配当表）と裁判官（弁済金交付計算書）の欄が別だった。
+    // 名前は 1 欄にまとめ、両方に違う名前があるときは計算の結果（どちらの書面になるか）で選ぶ
+    if (!String(state.meta.signer || '').trim()) {
+      const c = String(state.meta.clerk || '').trim(), j = String(state.meta.judge || '').trim();
+      let pay = false;
+      if (c && j && c !== j) { try { pay = HT.distribute(toInput()).type === '弁済金交付計算書'; } catch (e) { pay = false; } }
+      state.meta.signer = c && j && c !== j ? (pay ? j : c) : (c || j);
+    }
+    delete state.meta.clerk; delete state.meta.judge;
   }
   let example = null; // 読み込んだ設例（期待値との一致を示す）
   // 印刷の選択（事件の入力ではないので JSON には保存しない）
@@ -216,7 +225,7 @@
     if (tax) state.claims.push(Object.assign(blankClaim(), { kind: 'TAX', label: '（税目）・交付要求' }));
     if (sup) state._sup = { asserted: tpl.lien };
     const steps = [
-      '「1 事件」：配当期日、裁判所・書記官、債務者と、配当等事件（リ）の番号を年と号に分けて入れます（リ事件の数だけ欄を用意してあります）。',
+      '「1 事件」：配当期日、裁判所、作成者（配当表なら裁判所書記官、弁済金交付計算書なら裁判官。肩書は計算の結果で決まります）、債務者と、配当等事件（リ）の番号を年と号に分けて入れます（リ事件の数だけ欄を用意してあります）。',
       `「2 配当原資」：供託金${n > 1 ? `1〜${n}` : ''}ごとに、供託日（日時）・供託金を入れ、配当等事件の番号（リ）を「1 事件」に入れた番号から選びます。${nG && nW ? `供託金1${nG > 1 ? `〜${nG}` : ''}は預金・売掛金など、供託金${nG + 1}${nW > 1 ? `〜${n}` : ''}は給料等として用意しました。` : ''}${nW ? '給料等は手取額も入れます。' : ''}`,
       '「4 債権者」：債権者ごとに、名前・事件番号・差押え等の効力発生の日時・請求債権の額を入れます。',
     ];
@@ -282,8 +291,10 @@ ${renderTemplate()}
   <div class="grid">
     ${inp('meta.date', '配当期日（弁済金交付日）', '', 'date')}
     ${inp('meta.court', '裁判所・部', 'wide2', 'text', 'placeholder="○○地方裁判所第○民事部"')}
-    ${inp('meta.clerk', '裁判所書記官')}
-    ${inp('meta.judge', '裁判官（弁済金交付計算書）')}
+    <div class="field signer-field">
+      <label class="label" for="signer-in">作成者の氏名（配当の場合は書記官、弁済金交付の場合は裁判官）</label>
+      <div class="signer-row"><input class="in" id="signer-in" type="text" data-bind="meta.signer" value="${esc(val('meta.signer'))}"><span class="signer-role" id="signer-role">${esc(signerRole())}</span></div>
+    </div>
     ${inp('meta.debtor', '債務者')}
     ${sel('meta.debtorLabel', '債務者欄の表示', [['債　務　者', '債務者'], ['債務者兼所有者', '債務者兼所有者（担保権の実行）']])}
   </div>
@@ -564,7 +575,7 @@ ${renderTemplate()}
     };
     const one = (x) => {
       if (!x) return x;
-      if (x.meta) Object.assign(x.meta, { court: '○○地方裁判所', clerk: '', judge: '', debtor: '債務者', caseNos: '', cases: [], footnote: '' });
+      if (x.meta) Object.assign(x.meta, { court: '○○地方裁判所', signer: '', clerk: '', judge: '', debtor: '債務者', caseNos: '', cases: [], footnote: '' });
       (x.claims || []).forEach((c) => {
         c.creditor = alias(c.creditor, '債権者');
         c.caseNo = ''; c.regNote = ''; c.note = '';
@@ -578,10 +589,18 @@ ${renderTemplate()}
     (s.history || []).forEach((h) => { if (h.input) one(h.input); });
     return s;
   }
+  // 作成者の肩書：配当表は裁判所書記官（民執法85条5項）、弁済金交付計算書は執行裁判所＝裁判官（同法84条2項）。
+  // いずれも同法166条2項で債権執行に準用。計算の結果で決まる
+  function signerRole() {
+    if (!lastResult) return '';
+    return lastResult.type === '弁済金交付計算書' ? '→ いまの結果：弁済金交付計算書（「裁判官」と表示）' : '→ いまの結果：配当表（「裁判所書記官」と表示）';
+  }
+  function updateSignerRole() { const el = document.getElementById('signer-role'); if (el) el.textContent = signerRole(); }
   function compute() {
     viewing = null; viewingAdd = false;
     try {
       lastResult = HT.distribute(toInput());
+      updateSignerRole();
       renderResult();
       state.claims.forEach((c, i) => {
         const ex = HT.calcClaimExtras(c, state.meta.date);
@@ -590,6 +609,7 @@ ${renderTemplate()}
     } catch (e) {
       $('#result').innerHTML = `<p class="err">計算できませんでした：${esc(e.message)}</p>`;
       lastResult = null;
+      updateSignerRole();
     }
   }
   function renderResult() {
