@@ -70,5 +70,19 @@ try {
   assert.match(cs, /<v>2000<\/v>/);
   console.log('  ok   手続費用計算書');
 } catch (e) { fail++; console.log('  NG   手続費用計算書'); console.log(e.message); }
-console.log(`excel: ${2 - fail} passed, ${fail} failed`);
+// 作成者の肩書：名前は 1 欄で、配当表なら裁判所書記官、弁済金交付計算書なら裁判官
+try {
+  const base = { fund: { kind: 'general', deposits: [{ id: 'd1', date: '2026-11-01', amount: 1000000, interest: 0 }] } };
+  const pay = HT.tableModel(HT.distribute({ ...base, meta: { signer: '甲野' }, claims: [{ id: 'X', creditor: 'X', kind: 'GEN', principal: 300000 }] }));
+  assert.equal(pay.title, '弁済金交付計算書');
+  assert.equal(pay.signerTitle, '裁判官'); assert.equal(pay.signer, '甲野');
+  const div = HT.tableModel(HT.distribute({ ...base, meta: { signer: '甲野' }, claims: [{ id: 'X', creditor: 'X', kind: 'GEN', principal: 800000 }, { id: 'Y', creditor: 'Y', kind: 'GEN', principal: 800000 }] }));
+  assert.equal(div.title, '配当表');
+  assert.equal(div.signerTitle, '裁判所書記官'); assert.equal(div.signer, '甲野');
+  // 以前の入力（欄が別）：書面に応じた方を使う
+  const old = HT.tableModel(HT.distribute({ ...base, meta: { clerk: '乙川', judge: '丙山' }, claims: [{ id: 'X', creditor: 'X', kind: 'GEN', principal: 300000 }] }));
+  assert.equal(old.signer, '丙山');
+  console.log('  ok   作成者の肩書');
+} catch (e) { fail++; console.log('  NG   作成者の肩書'); console.log(e.message); }
+console.log(`excel: ${3 - fail} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
