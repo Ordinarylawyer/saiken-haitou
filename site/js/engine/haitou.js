@@ -358,9 +358,12 @@
     return parts;
   }
 
+  // 供託金が給料等の差押えによるものか。fund.kind が 'mixed'（預金等と給料等の両方）のときは供託金ごとの debtKind で決める
+  HT.isWageDeposit = (d, fund) => (fund.kind === 'mixed' ? (d && d.debtKind) === 'wage' : fund.kind === 'wage');
+
   // 債権ごとの差押可能額の種類
-  function capKind(c, fund) {
-    if (fund.kind !== 'wage') return 'ALL';
+  function capKind(c, wage) {
+    if (!wage) return 'ALL';
     if (c.kind === 'SUP2' || c.kind === 'SUP3') return 'H';
     if (isPublic(c) && c.taxSeizure) return 'T';
     return 'Q';
@@ -557,7 +560,7 @@
         const seized = active.some((c) => c.kind !== 'PRV' && !c._parent && ownEff(c) && (!d.depositedAt || ownEff(c) <= d.depositedAt));
         const at = viaDep && seized && d.depositedAt ? d.depositedAt : (d.deliveredAt || d.at || '');
         if (!at) warn(`供託${i + 1}（残余金）：残余金の交付を受けた日時（第三債務者の供託を経たときは供託の日時も）を入れてください。`);
-        sortedDeps.push(Object.assign({}, d, { _origIndex: i, at, interest: d.interest != null && d.interest !== '' ? int(d.interest) : 0, _flat: fund.kind === 'wage' ? !!d._flat : false,
+        sortedDeps.push(Object.assign({}, d, { _origIndex: i, at, interest: d.interest != null && d.interest !== '' ? int(d.interest) : 0, _flat: HT.isWageDeposit(d, fund) ? !!d._flat : false,
           _part: '滞納処分庁から交付を受けた残余金' }));
         return;
       }
@@ -572,7 +575,7 @@
       const amount = int(d.amount);
       const interest = d.interest != null && d.interest !== '' ? int(d.interest) : HT.depositInterest(amount, d.date, meta.date);
       let seizable = amount;
-      if (fund.kind === 'wage') {
+      if (HT.isWageDeposit(d, fund)) {
         const q = d.capQ != null && d.capQ !== '' ? int(d.capQ) : d.net != null && d.net !== '' ? HT.wageCaps(d.net).Q : null;
         if (q != null) seizable = Math.min(amount, q);
       }
@@ -623,7 +626,7 @@
       const info = { index: i, id: d.id || String(i + 1), date: d.date || '', amount, interest, caseNo: d.caseNo || '', depositNo: d.depositNo || '', office: d.office || '', thirdParty: d.thirdParty || '', mixed: !!d.mixed,
         preservation: !!d.preservation, convertedAt: d.convertedAt || '', part: d._part || '' };
       const last = deposits[deposits.length - 1];
-      if ((fund.kind !== 'wage' || d._flat) && last && last._flat === d._flat && last._sig === sig) {
+      if ((!HT.isWageDeposit(d, fund) || d._flat) && last && HT.isWageDeposit(last, fund) === HT.isWageDeposit(d, fund) && last._flat === d._flat && last._sig === sig) {
         last.amount += amount; last._interest += interest; last.depositCost = int(last.depositCost) + int(d.depositCost); last._list.push(info);
       } else {
         deposits.push(Object.assign({}, d, { amount, _interest: interest, _elig: elig, _sig: sig, _list: [info] }));
@@ -638,21 +641,22 @@
 
       // 区画を作る（外側＝差押可能額の大きい方から）
       const caps = {};
-      if (fund.kind === 'wage') {
+      const wageDep = HT.isWageDeposit(d, fund);
+      if (wageDep) {
         const net = d.net != null && d.net !== '' ? int(d.net) : null;
         const wc = net != null ? HT.wageCaps(net) : null;
         caps.Q = d.capQ != null && d.capQ !== '' ? int(d.capQ) : wc ? wc.Q : amount;
         caps.H = d.capH != null && d.capH !== '' ? int(d.capH) : wc ? wc.H : amount;
         caps.T = d.capT != null && d.capT !== '' ? int(d.capT) : d.wage ? HT.taxSeizable(Object.assign({ payDate: d.payDate || d.date }, d.wage)) : null;
-        if (caps.T == null && active.some((c) => capKind(c, fund) === 'T')) {
+        if (caps.T == null && active.some((c) => capKind(c, true) === 'T')) {
           warn('滞納処分の差押えがありますが、国税徴収法76条の差押可能額（区画T）が入力されていません。1/4の範囲として計算しました。');
           caps.T = caps.Q;
         }
       }
       const elig = d._elig;
-      const kindsPresent = new Set(elig.map((c) => capKind(c, fund)));
+      const kindsPresent = new Set(elig.map((c) => capKind(c, wageDep)));
       let bounds;
-      if (fund.kind !== 'wage' || d._flat) bounds = [amount];
+      if (!wageDep || d._flat) bounds = [amount];
       else {
         const vals = [...kindsPresent].map((k) => (k === 'T' ? (caps.T != null ? caps.T : caps.H) : caps[k]));
         bounds = [...new Set(vals.map((v) => Math.min(v, amount)))].filter((v) => v > 0).sort((a, b) => a - b);
@@ -663,8 +667,8 @@
         }
       }
       const capOf = (c) => {
-        if (fund.kind !== 'wage' || d._flat) return amount;
-        const k = capKind(c, fund);
+        if (!wageDep || d._flat) return amount;
+        const k = capKind(c, true);
         return Math.min(amount, k === 'T' ? (caps.T != null ? caps.T : caps.H) : caps[k]);
       };
       const regions = bounds.map((u, i) => ({ lower: i ? bounds[i - 1] : 0, upper: u, amount: u - (i ? bounds[i - 1] : 0) }));
@@ -693,7 +697,7 @@
         const { got, rest } = allocRegion(r.amount, inRegion, rem, settings, warn);
         for (const [k, v] of got) { rem.set(k, rem.get(k) - v); paid.set(k, paid.get(k) + v); }
         const parts = [...new Set(d._list.map((x) => x.part).filter(Boolean))];
-        regionLog.push({ deposit: d.id || String(di + 1), depositIndex: di, depositDate: d.date || '', deposits: d._list, wage: fund.kind === 'wage', what: parts.join('・'),
+        regionLog.push({ deposit: d.id || String(di + 1), depositIndex: di, depositDate: d.date || '', deposits: d._list, wage: wageDep, what: parts.join('・'),
           lower: r.lower, upper: r.upper, gross: r.upper - r.lower, amount: r.amount, cost: r.cost || 0, interest: r.interest || 0,
           members: inRegion.map((c) => c.id), sig: inRegion.map((c) => c.id).sort().join(','), before, got: Object.fromEntries(got), rest });
         debtorSurplus += rest;
@@ -702,7 +706,7 @@
 
     // 結果の行
     const saleTotal = int(fund.saleProceeds);
-    if (saleTotal && fund.kind === 'wage') warn('売得金は区画（給料等の差押えの範囲）に入れずに配っています。');
+    if (saleTotal && (fund.kind === 'wage' || fund.kind === 'mixed')) warn('売得金は区画（給料等の差押えの範囲）に入れずに配っています。');
     if (saleTotal && !fund.saleAt) warn('売得金：執行官が売得金の交付を受けた日時（配当要求の終期。民執法165条3号）を入れてください。');
     const fundTotal = depositTotal + interestTotal + saleTotal;
     if (saleTotal) {
@@ -906,8 +910,10 @@
     s.history = (s.history || []).concat([log]);
     s.meta = Object.assign({}, s.meta, { date: '' });
     s.fund = Object.assign({}, s.fund, { cutoffAt: '', saleProceeds: '' });
-    const lastDep = (s.fund.deposits || []).slice(-1)[0] || {};
-    s.fund.deposits = [{ thirdParty: lastDep.thirdParty || '', office: lastDep.office || '', wage: lastDep.wage ? { dependents: lastDep.wage.dependents || '' } : undefined }];
+    // 続く回は給料等の供託金（預金等と給料等の両方のときは、最後の給料等の供託金を引き継ぐ）
+    const deps0 = s.fund.deposits || [];
+    const lastDep = (s.fund.kind === 'mixed' ? deps0.filter((d) => d.debtKind === 'wage') : deps0).slice(-1)[0] || deps0.slice(-1)[0] || {};
+    s.fund.deposits = [{ thirdParty: lastDep.thirdParty || '', office: lastDep.office || '', debtKind: lastDep.debtKind || undefined, wage: lastDep.wage ? { dependents: lastDep.wage.dependents || '' } : undefined }];
     s.procedureCosts = (s.procedureCosts || []).map((p) => ({ payee: p.payee || '', amount: '', note: p.note || '' }));
     s.agreement = { enabled: false, amounts: {} };
     const dropped = [];
