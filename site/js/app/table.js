@@ -149,7 +149,7 @@
     return html;
   };
 
-  // 手続費用計算書（立替者ごと）。書式は園部厚「書式 債権・その他財産権・動産等執行の実務〔全訂15版〕」447頁（民事法研究会）の書式2-72による
+  // 手続費用計算書（立替者ごと）。書式は園部厚「書式 債権・その他財産権・動産等執行の実務〔全訂15版〕」447頁（民事法研究会・2020年）の書式2-72による
   HT.COST_STATEMENT_MIN_ROWS = 20;
   HT.costStatementCase = (meta) => {
     const cases = String((meta || {}).caseNos || '').split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
