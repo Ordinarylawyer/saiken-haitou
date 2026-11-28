@@ -2,7 +2,9 @@
 
 債権執行の配当額を計算し、実務の書式で配当表（弁済金交付計算書）を作る Web アプリです。**ブラウザの中だけで動き、入力した情報をどこにも送りません。**
 
-アプリ：<https://ordinarylawyer.github.io/saiken-haitou/>
+**アプリを開く：[債権執行 配当計算](https://ordinarylawyer.github.io/saiken-haitou/)**
+
+姉妹版：[不動産執行 配当計算](https://ordinarylawyer.github.io/kenu-haitou/)
 
 ## 計算の考え方（論点整理）
 
