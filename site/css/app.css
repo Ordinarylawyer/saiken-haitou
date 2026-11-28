@@ -132,6 +132,7 @@ th.ht-stack { text-align: left; white-space: nowrap; }
 .ex-group li { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; align-items: start; padding: 4px 0; border-bottom: 1px dotted var(--border); }
 .ex-group li .ex-title { font-size: 13px; font-weight: 600; }
 .ex-group li .ex-desc { grid-column: 2; font-size: 12px; color: var(--sub); }
+.ex-group li .ex-desc a { margin-left: .5em; white-space: nowrap; }
 .ex-book { font-size: 11px; color: #fff; background: var(--primary); border-radius: 3px; padding: 0 5px; margin-left: 6px; }
 .ex-banner { border: 1px solid var(--border); border-left: 4px solid var(--sub); border-radius: var(--radius); padding: 6px 10px; margin: 0 0 8px; font-size: 13px; background: #fff; }
 .ex-banner.ok { border-left-color: #2e7d32; }

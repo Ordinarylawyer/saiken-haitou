@@ -172,15 +172,22 @@
   }
   const RONTEN_SECTIONS = { 1: '第1-手続の分岐と配当加入', 2: '第2-仮差押えを原因とする供託', 3: '第3-配当原資と区画', 4: '第4-順位', 5: '第5-扶養義務等債権', 6: '第6-仮差押えと本執行への移行', 7: '第7-債権額充当端数配当表の記載', 8: '第8-継続的給付と回次の繰越', 9: '第9-特殊な場面' };
   const rontenLink = (r) => `<a href="${REPO}/blob/main/docs/%E8%AB%96%E7%82%B9%E6%95%B4%E7%90%86.md#${encodeURIComponent(RONTEN_SECTIONS[r.split('-')[0]] || '')}" target="_blank" rel="noopener noreferrer">${esc(r)}</a>`;
+  // 設例の計算過程の説明（docs/設例の計算過程.md・.pdf）。設例の番号は HT.EXAMPLES の順（tools/examples_doc.mjs と同じ）
+  const exDoc = (ext) => `${REPO}/blob/main/docs/${encodeURIComponent('設例の計算過程')}.${ext}`;
+  const exDocUrl = (ex) => {
+    const slug = `${(HT.EXAMPLES || []).indexOf(ex) + 1} ${ex.title}`.toLowerCase().replace(/[^\p{L}\p{M}\p{N}\p{Pc} -]/gu, '').replace(/ /g, '-');
+    return `${exDoc('md')}#${encodeURIComponent(slug)}`;
+  };
+  const extLink = (href, text, title) => `<a href="${href}" target="_blank" rel="noopener noreferrer"${title ? ` title="${esc(title)}"` : ''}>${esc(text)}</a>`;
   function renderExamples() {
     const list = HT.EXAMPLES || [];
     if (!list.length) return '';
     const groups = [...new Set(list.map((x) => x.group))];
     return `<div class="examples"><h3>または、設例から選ぶ</h3>
-  <p class="hint">テストで計算の結果を確かめている事例です。読み込むと、そのまま書き換えてテンプレートの代わりに使えます。番号は論点整理の論点です。</p>
+  <p class="hint">テストで計算の結果を確かめている事例です。読み込むと、そのまま書き換えてテンプレートの代わりに使えます。番号は論点整理の論点です。各設例の計算の過程は「設例の計算過程」（${extLink(exDoc('md'), 'Web で見る')}・${extLink(exDoc('pdf'), 'PDF')}）で1つずつ説明しています。</p>
   ${groups.map((g) => `<details class="ex-group"><summary>${esc(g)}（${list.filter((x) => x.group === g).length}件）</summary>
     <ul>${list.filter((x) => x.group === g).map((x) => `<li><button class="btn small" data-act="loadExample" data-id="${esc(x.id)}">読み込む</button>
-      <span class="ex-title">${esc(x.title)}</span>${x.source ? '<span class="ex-book">近藤本</span>' : ''}<span class="ex-desc">${esc(x.desc)}（論点 ${x.ronten.map(esc).join('・')}）</span></li>`).join('')}</ul></details>`).join('')}
+      <span class="ex-title">${esc(x.title)}</span>${x.source ? '<span class="ex-book">近藤本</span>' : ''}<span class="ex-desc">${esc(x.desc)}（論点 ${x.ronten.map(esc).join('・')}）${extLink(exDocUrl(x), '計算の過程', 'この設例の計算の過程の説明を開く')}</span></li>`).join('')}</ul></details>`).join('')}
 </div>`;
   }
   function loadExample(id) {
@@ -205,7 +212,7 @@
     if (!example || viewing != null || viewingAdd) return '';
     const ok = exampleMatches(r);
     return `<div class="ex-banner noprint ${ok ? 'ok' : ''}"><div class="row between"><strong>設例：${esc(example.title)}</strong><button class="btn small" data-act="closeExample">閉じる</button></div>
-  <p>${esc(example.desc)}　論点 ${example.ronten.map(rontenLink).join('・')}</p>
+  <p>${esc(example.desc)}　論点 ${example.ronten.map(rontenLink).join('・')}　${extLink(exDocUrl(example), '計算の過程を見る', 'この設例の計算の過程の説明を開く')}</p>
   ${example.source ? `<p class="hint">出典：${esc(example.source)}</p>` : ''}
   <p class="ex-check">${ok ? '✓ テストの期待値と一致しています。' : '入力を設例から変えているため、設例の結果とは異なります。'}</p></div>`;
   }
@@ -428,7 +435,7 @@ ${renderTemplate()}
     ${sel('settings.remainder', '按分の端数の残り', [['order', '配当表の記載順に1円ずつ'], ['fraction', '端数の大きい順に1円ずつ']])}
     ${sel('settings.costAllocation', '供託費用・手続費用の負担（給料等）', [['outer', '最初に配る部分（1/4を超える部分）から'], ['inner', '1/4までの部分（全員が加入）から'], ['proportional', '各部分の大きさに比例']])}
     ${sel('settings.stayedDeposit', '執行停止中の供託の配当加入遮断効', [['cutoff', '認める（供託の時が終期）'], ['nocutoff', '認めない（停止が解けた時を基準）']])}
-    ${sel('settings.supportApplication', '先取特権のない部分への配当と、先取特権の被担保債権額（次回への繰越）', [['statutory', '法定充当により先取特権の部分から減る'], ['fixed', '先取特権の部分は減らない']])}
+    ${sel('settings.supportApplication', '先取特権によらない配当と、先取特権の被担保債権額（D-14）', [['statutory', '法定充当により先取特権の部分から減る'], ['fixed', '減らない（1/4を超え1/2までの部分で受けた配当は、それ以外の部分から充てる）']])}
   </div>
 </section>`;
   }
