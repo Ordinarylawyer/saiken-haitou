@@ -2,5 +2,8 @@
 reference/
 tests/local/
 *.pdf
+# 例外：アプリが作る設例の計算過程の PDF だけは入れる（tools/examples_pdf.py）
+!docs/設例の計算過程.pdf
 node_modules/
 .DS_Store
+__pycache__/

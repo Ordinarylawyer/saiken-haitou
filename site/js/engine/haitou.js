@@ -49,7 +49,7 @@
     remainder: 'fraction',   // D-13 端数の配り方: fraction（小数点以下の大きい順。近藤基「債権配当の実務と書式〔第3版〕」187頁（民事法研究会・2021年））| order（記載順）
     costAllocation: 'outer', // 供託費用・手続費用を差し引く部分: outer（最初に配る超過部分から。最優先なので最初の部分で償還される）| inner | proportional
     stayedDeposit: 'cutoff',  // 執行停止中の供託: cutoff（供託の時に終期。民執法165条1号の文言）| nocutoff（停止が解けた時を基準）
-    supportApplication: 'statutory', // D-14 先取特権のない部分への配当で先取特権の被担保債権額が減るか: statutory（減る）| fixed（減らない）
+    supportApplication: 'statutory', // D-14 先取特権によらない配当で先取特権の被担保債権額が減るか: statutory（法定充当で減る）| fixed（不変説。1/4を超える部分で受けた配当はそれ以外の部分から充てる）
   };
 
   // ---------------------------------------------------------------
@@ -702,6 +702,19 @@
         const inRegion = elig.filter((c) => capOf(c) >= r.upper && rem.get(c.id) > 0);
         const before = Object.fromEntries(inRegion.map((c) => [c.id, rem.get(c.id)]));
         const { got, rest } = allocRegion(r.amount, inRegion, rem, settings, warn);
+        // D-14 不変説：1/4を超える部分（扶養義務等債権だけが取れる部分）で受けた配当は先取特権によらないので、
+        // 同じ扶養義務等債権の「それ以外の部分」から充て、先取特権の部分の被担保債権額を減らさない（他の債権者との間の配分は変えない）
+        if (settings.supportApplication === 'fixed' && wageDep && !d._flat && caps.Q != null && r.lower >= caps.Q) {
+          const groups = {};
+          for (const c of inRegion.filter((x) => x.group && (x.kind === 'SUP2' || x.kind === 'SUP3'))) (groups[c.group] = groups[c.group] || []).push(c);
+          for (const list of Object.values(groups)) {
+            const s3 = list.find((x) => x.kind === 'SUP3'), s2 = list.find((x) => x.kind === 'SUP2');
+            if (!s3 || !s2) continue;
+            const total = got.get(s3.id) + got.get(s2.id);
+            const g2 = Math.min(rem.get(s2.id), total);
+            got.set(s2.id, g2); got.set(s3.id, total - g2);
+          }
+        }
         for (const [k, v] of got) { rem.set(k, rem.get(k) - v); paid.set(k, paid.get(k) + v); }
         const parts = [...new Set(d._list.map((x) => x.part).filter(Boolean))];
         regionLog.push({ deposit: d.id || String(di + 1), depositIndex: di, depositDate: d.date || '', deposits: d._list, wage: wageDep, what: parts.join('・'),
